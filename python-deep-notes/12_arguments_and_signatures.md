@@ -1,128 +1,639 @@
-# Arguments & Function Signatures
+# Arguments Và Function Signatures
 
-Ghi chú chi tiết về cách truyền tham số (Arguments) và Chữ ký hàm (Signature) trong Python.
-
----
-
-## 1. Tham số `*args` và `**kwargs`
-
-Python cung cấp 2 cách truyền tham số linh hoạt khi số lượng đối số truyền vào không cố định:
-
-### 1.1 `*args` (Positional Arguments)
-* **Định nghĩa**: Gom tất cả các tham số vị trí dư thừa truyền vào hàm thành một **tuple**.
-* **Ví dụ**:
-  ```python
-  def sum_numbers(*args):
-      print(args)  # (1, 2, 3)
-      return sum(args)
-
-  sum_numbers(1, 2, 3)
-  ```
-
-### 1.2 `**kwargs` (Keyword Arguments)
-* **Định nghĩa**: Gom tất cả các tham số truyền theo cặp `key=value` dư thừa thành một **dictionary**.
-* **Ví dụ**:
-  ```python
-  def print_info(**kwargs):
-      print(kwargs)  # {'name': 'Linh', 'age': 20}
-
-  print_info(name="Linh", age=20)
-  ```
+Ghi chú về cách Python truyền giá trị vào hàm, cách đọc function signature, và cách phân biệt đúng giữa `parameter`, `argument`, `*args`, `**kwargs`.
 
 ---
 
-## 2. Kiểm soát cách truyền đối số (Argument Control)
+## 0. Parameter Và Argument
 
-Từ Python 3.8+, ta có thể kiểm soát nghiêm ngặt cách truyền đối số vào hàm thông qua ký tự `/` và `*`.
+Trong Python cần tách rõ 2 khái niệm:
 
+| Khái niệm | Nghĩa |
+|---|---|
+| Parameter | Tên biến nằm trong phần định nghĩa hàm |
+| Argument | Giá trị thật sự được truyền vào khi gọi hàm |
+
+Ví dụ:
+
+```python
+def greet(name, age):
+    pass
+
+greet("Linh", 20)
 ```
+
+Trong đó:
+
+```python
+name, age       # parameters
+"Linh", 20      # arguments
+```
+
+Nói ngắn gọn:
+
+> Parameter là chỗ nhận. Argument là giá trị được đưa vào.
+
+---
+
+## 1. Argument Bình Thường
+
+Argument bình thường là giá trị được truyền vào và khớp trực tiếp với parameter đã khai báo sẵn trong signature.
+
+```python
+def add(a, b):
+    return a + b
+
+add(2, 3)
+```
+
+Map ra:
+
+```python
+a = 2
+b = 3
+```
+
+Có 2 cách truyền argument bình thường.
+
+### 1.1 Positional Argument
+
+Truyền theo vị trí.
+
+```python
+def create_user(name, age):
+    print(name, age)
+
+create_user("Linh", 20)
+```
+
+Map ra:
+
+```python
+name = "Linh"
+age = 20
+```
+
+Với positional argument, thứ tự rất quan trọng.
+
+### 1.2 Keyword Argument
+
+Truyền theo tên parameter.
+
+```python
+def create_user(name, age):
+    print(name, age)
+
+create_user(age=20, name="Linh")
+```
+
+Map ra:
+
+```python
+name = "Linh"
+age = 20
+```
+
+Keyword argument không phụ thuộc vào thứ tự, vì Python map theo tên.
+
+---
+
+## 2. `*args` Và `**kwargs`
+
+`*args` và `**kwargs` không phải là một loại argument riêng.
+
+Chính xác hơn:
+
+- `*args` là một parameter đặc biệt dùng để gom các positional arguments còn dư.
+- `**kwargs` là một parameter đặc biệt dùng để gom các keyword arguments còn dư.
+- Tên `args` và `kwargs` chỉ là convention.
+- Cái đặc biệt nằm ở dấu `*` và `**`.
+
+---
+
+## 3. `*args`
+
+`*args` gom các positional arguments chưa được parameter cố định nào nhận vào một tuple.
+
+```python
+def demo(a, b, *args):
+    print(a)
+    print(b)
+    print(args)
+
+demo(1, 2, 3, 4)
+```
+
+Map ra:
+
+```python
+a = 1
+b = 2
+args = (3, 4)
+```
+
+Giải thích:
+
+- `1` được gán cho `a`.
+- `2` được gán cho `b`.
+- `3`, `4` là positional arguments còn dư, nên bị gom vào `args`.
+
+Lưu ý:
+
+```python
+def demo(*values):
+    print(values)
+```
+
+Vẫn đúng. Vì tên `args` không bắt buộc. Nhưng trong Python người ta thường đặt là `args` cho dễ đọc.
+
+---
+
+## 4. `**kwargs`
+
+`**kwargs` gom các keyword arguments chưa khớp với parameter cố định nào vào một dictionary.
+
+```python
+def demo(a, b, **kwargs):
+    print(a)
+    print(b)
+    print(kwargs)
+
+demo(a=1, b=2, name="Linh", age=20)
+```
+
+Map ra:
+
+```python
+a = 1
+b = 2
+kwargs = {
+    "name": "Linh",
+    "age": 20,
+}
+```
+
+Keyword nào có parameter nhận riêng thì không rơi vào `kwargs`.
+
+```python
+def demo(a, b, **kwargs):
+    print(a)
+    print(b)
+    print(kwargs)
+
+demo(b=1, a=2)
+```
+
+Map ra:
+
+```python
+a = 2
+b = 1
+kwargs = {}
+```
+
+Vì `a` và `b` đã có chỗ nhận riêng trong signature, nên chúng không bị đẩy vào `kwargs`.
+
+Chỉ keyword lạ mới rơi vào `kwargs`.
+
+```python
+demo(b=1, a=2, x=10, y=20)
+```
+
+Map ra:
+
+```python
+a = 2
+b = 1
+kwargs = {
+    "x": 10,
+    "y": 20,
+}
+```
+
+---
+
+## 5. Thứ Tự Parameter Trong Function Signature
+
+Dạng dễ nhớ:
+
+```python
+def func(a, b=10, *args, c, d=20, **kwargs):
+    pass
+```
+
+Thứ tự:
+
+| Nhóm | Ví dụ | Ý nghĩa |
+|---|---|---|
+| Parameter cố định | `a`, `b=10` | Nhận argument bình thường |
+| Positional còn dư | `*args` | Gom positional arguments còn lại |
+| Keyword-only parameter | `c`, `d=20` | Bắt buộc truyền bằng tên |
+| Keyword còn dư | `**kwargs` | Gom keyword arguments còn lại |
+
+Ví dụ:
+
+```python
+def demo(a, b, *args, c, **kwargs):
+    print(a)
+    print(b)
+    print(args)
+    print(c)
+    print(kwargs)
+
+demo(1, 2, 3, 4, c=5, name="Linh")
+```
+
+Map ra:
+
+```python
+a = 1
+b = 2
+args = (3, 4)
+c = 5
+kwargs = {"name": "Linh"}
+```
+
+Vì sao phải là `c=5` mà không phải `5`?
+
+Vì `c` đứng sau `*args`, nên `c` là keyword-only parameter. Sau khi gặp `*args`, Python sẽ gom hết positional arguments còn dư vào `args`.
+
+Nếu gọi:
+
+```python
+demo(1, 2, 3, 4, 5, name="Linh")
+```
+
+Python sẽ hiểu:
+
+```python
+a = 1
+b = 2
+args = (3, 4, 5)
+```
+
+Và `c` vẫn chưa có giá trị, nên sẽ lỗi.
+
+---
+
+## 6. Vì Sao `**kwargs` Phải Đứng Cuối?
+
+`**kwargs` có nghĩa là gom tất cả keyword arguments còn lại.
+
+Vì nó đã gom phần còn lại, nên sau `**kwargs` không thể còn parameter nào nữa.
+
+Sai:
+
+```python
+def demo(**kwargs, a):
+    pass
+```
+
+Đúng:
+
+```python
+def demo(a, **kwargs):
+    pass
+```
+
+Chốt:
+
+> `*args` đứng trước `**kwargs`. `**kwargs` phải đứng cuối.
+
+---
+
+## 7. Dấu `/` Và `*` Trong Signature
+
+Python có thể kiểm soát cách truyền argument bằng `/` và `*`.
+
+```python
 def func(positional_only, /, positional_or_keyword, *, keyword_only):
     pass
 ```
 
-### 2.1 Positional-only parameters (Dùng `/`)
-* Các tham số đứng **trước dấu `/`** bắt buộc phải truyền dưới dạng tham số vị trí (positional argument), không được phép truyền bằng tên (keyword).
-* **Mục đích**: Giúp ta có thể đổi tên tham số ở lớp cha mà không làm hỏng code của các lớp con/caller đang dùng.
-* **Ví dụ**:
-  ```python
-  def greet(name, /, greeting="Hello"):
-      return f"{greeting}, {name}"
+---
 
-  greet("Linh")            # Hợp lệ
-  # greet(name="Linh")     # TypeError: greet() got some positional-only arguments passed as keyword arguments
-  ```
+## 8. Positional-only Parameter
 
-### 2.2 Keyword-only parameters (Dùng `*`)
-* Các tham số đứng **sau dấu `*`** bắt buộc phải truyền dưới dạng tên (`key=value`), không được phép truyền theo vị trí.
-* **Mục đích**: Bắt buộc caller phải tường minh khi truyền các tham số cấu hình quan trọng, tránh nhầm lẫn thứ tự.
-* **Ví dụ**:
-  ```python
-  def calculate_tax(price, *, tax_rate):
-      return price * tax_rate
+Parameter đứng trước dấu `/` chỉ được truyền bằng vị trí, không được truyền bằng tên.
 
-  calculate_tax(100, tax_rate=0.1) # Hợp lệ
-  # calculate_tax(100, 0.1)        # TypeError: calculate_tax() takes 1 positional argument but 2 were given
-  ```
+```python
+def greet(name, /, greeting="Hello"):
+    return f"{greeting}, {name}"
+
+greet("Linh")
+greet("Linh", greeting="Hi")
+```
+
+Sai:
+
+```python
+greet(name="Linh")
+```
+
+Mục đích:
+
+- Caller không phụ thuộc vào tên parameter.
+- Người viết hàm có thể đổi tên parameter mà ít làm hỏng code bên ngoài.
+- Hay gặp trong built-in functions hoặc thư viện cần giữ API chặt.
 
 ---
 
-## 3. Signature của Hàm (Function Signature)
+## 9. Keyword-only Parameter
 
-### 3.1 Signature là gì?
-Signature (chữ ký) của một hàm/phương thức trong Python bao gồm:
-1. **Tên hàm** (Function Name).
-2. **Các tham số** (Parameters): Số lượng, thứ tự, tên tham số, giá trị mặc định (default values) của chúng.
-3. **Kiểu dữ liệu** (Type hints) của tham số đầu vào và giá trị trả về (nếu có).
+Parameter đứng sau `*args` hoặc sau dấu `*` bắt buộc phải truyền bằng tên.
 
-*Ví dụ:*
+```python
+def calculate_tax(price, *, tax_rate):
+    return price * tax_rate
+
+calculate_tax(100, tax_rate=0.1)
+```
+
+Sai:
+
+```python
+calculate_tax(100, 0.1)
+```
+
+Mục đích:
+
+- Ép caller viết rõ ý nghĩa argument.
+- Tránh nhầm thứ tự với các tham số cấu hình quan trọng.
+- Code dễ đọc hơn.
+
+---
+
+## 10. Function Signature Là Gì?
+
+Function signature là phần mô tả cách một hàm được gọi.
+
+Nó là phần "mặt ngoài" của hàm:
+
+- Tên hàm.
+- Danh sách parameters.
+- Thứ tự parameters.
+- Parameter nào bắt buộc.
+- Parameter nào có default value.
+- Parameter nào là positional-only.
+- Parameter nào là keyword-only.
+- Hàm có nhận `*args` hay `**kwargs` không.
+- Type hints và return annotation nếu có.
+
+Ví dụ:
+
 ```python
 def process_data(user_id: int, status: str = "active") -> bool:
     pass
 ```
-Chữ ký của hàm trên là: `process_data(user_id: int, status: str = 'active') -> bool`.
 
-### 3.2 Tại sao cần phải quan tâm đến Signature?
+Có thể đọc signature là:
 
-#### A. Là một bản hợp đồng thiết kế (Interface Contract)
-Signature định nghĩa cách mà bên ngoài giao tiếp với hàm của bạn. Nó quy định chính xác caller cần truyền vào những gì và nhận lại kết quả dạng nào.
-
-#### B. Hỗ trợ IDE, Static Analyzer & Tự động hoàn thành (Autocomplete)
-Python là ngôn ngữ kiểu động (dynamically typed). Việc cung cấp signature rõ ràng cùng với Type Hint giúp các công cụ như VS Code, PyCharm, MyPy:
-* Cảnh báo lỗi sai kiểu dữ liệu ngay khi viết code (trước khi chạy chương trình).
-* Gợi ý tự động (autocomplete) chính xác tên thuộc tính/hành vi.
-
-#### C. Phục vụ Meta-programming (Lập trình siêu dữ liệu) và Tự động hóa
-Nhiều thư viện hiện đại của Python (FastAPI, Pydantic, Click, Typer, v.v.) dựa vào việc đọc và phân tích signature ở runtime (thông qua module `inspect` của Python) để tự động hóa nhiều tác vụ phức tạp:
-* **FastAPI/Pydantic**: Đọc signature của hàm xử lý request để tự động kiểm tra tính hợp lệ của dữ liệu (validation), tự động parse kiểu dữ liệu, và sinh ra tài liệu API (Swagger UI).
-* **Dependency Injection (DI)**: Đọc tham số trong signature để tự động truyền đúng đối tượng cần thiết.
-
-*Ví dụ phân tích signature bằng thư viện `inspect`:*
 ```python
-import inspect
-
-def greet(name: str, age: int = 20) -> str:
-    return f"Hello {name}, you are {age}."
-
-sig = inspect.signature(greet)
-print(sig)  # Output: (name: str, age: int = 20) -> str
-
-for param in sig.parameters.values():
-    print(f"Name: {param.name}, Type: {param.annotation}, Default: {param.default}")
+process_data(user_id: int, status: str = "active") -> bool
 ```
 
-#### D. Tương thích Signature trong Ghi đè phương thức (Override)
-Khi lớp con ghi đè một phương thức của lớp cha, nó nên tuân thủ **Nguyên lý thay thế Liskov (Liskov Substitution Principle - LSP)**: 
-> Chữ ký phương thức của lớp con phải **tương thích** hoặc **rộng hơn** chữ ký của lớp cha để đảm bảo bất kỳ nơi nào chạy được lớp cha thì cũng chạy được lớp con mà không bị lỗi.
+Lưu ý:
+
+> Type hints chỉ là gợi ý kiểu. Python không tự ép kiểu ở runtime nếu không có tool hoặc thư viện xử lý thêm.
 
 ---
 
-## Tài liệu tham khảo chính thức (Official Documentation)
-* [Python Tutorial - More on Defining Functions (Arguments, /, *)](https://docs.python.org/3/tutorial/controlflow.html#more-on-defining-functions)
-* [Python Language Reference - Function Definitions](https://docs.python.org/3/reference/compound_stmts.html#function-definitions)
-* [Python Standard Library - `inspect` Module (Signature Introspection)](https://docs.python.org/3/library/inspect.html#introspecting-callables-with-the-signature-object)
-* [PEP 570 - Python Positional-Only Parameters](https://peps.python.org/pep-0570/)
-* [PEP 3102 - Keyword-Only Arguments](https://peps.python.org/pep-3102/)
+## 11. Vì Sao Signature Quan Trọng?
+
+### 11.1 Signature Là Hợp Đồng Gọi Hàm
+
+```python
+def add(a, b):
+    return a + b
+```
+
+Signature cho biết hàm `add` cần 2 argument.
+
+Đúng:
+
+```python
+add(1, 2)
+```
+
+Sai:
+
+```python
+add(1)
+add(1, 2, 3)
+```
 
 ---
 
-[12_arguments_and_signatures_examples.py](file:///home/linh/VDX-intern/python-deep-notes/examples/12_arguments_and_signatures_examples.py)
+### 11.2 Signature Quyết Định Cách Python Map Argument Vào Parameter
+
+```python
+def demo(a, b, **kwargs):
+    pass
+
+demo(b=1, a=2)
+```
+
+Python map theo tên:
+
+```python
+a = 2
+b = 1
+kwargs = {}
+```
+
+Chỉ keyword lạ mới rơi vào `kwargs`:
+
+```python
+demo(b=1, a=2, x=3)
+```
+
+Map ra:
+
+```python
+a = 2
+b = 1
+kwargs = {"x": 3}
+```
+
+---
+
+### 11.3 Signature Quan Trọng Khi Override Method
+
+Khi class con override method của class cha, signature nên tương thích với method gốc.
+
+```python
+class Parent:
+    def write(self, vals):
+        pass
+
+
+class Child(Parent):
+    def write(self, vals):
+        return super().write(vals)
+```
+
+Nếu override sai:
+
+```python
+class Child(Parent):
+    def write(self):
+        pass
+```
+
+Khi code bên ngoài gọi:
+
+```python
+obj.write({"name": "Linh"})
+```
+
+Sẽ lỗi vì method con không nhận `vals`.
+
+Trong Odoo, điều này rất quan trọng vì override method xảy ra liên tục.
+
+---
+
+## 12. Dùng `*args`, `**kwargs` Khi Override
+
+Khi muốn giữ method con linh hoạt với method cha, có thể dùng:
+
+```python
+class Child(Parent):
+    def some_method(self, *args, **kwargs):
+        result = super().some_method(*args, **kwargs)
+        return result
+```
+
+Ý nghĩa:
+
+- `*args` nhận positional arguments còn dư.
+- `**kwargs` nhận keyword arguments còn dư.
+- Khi gọi `super()`, `*args` bung tuple thành positional arguments.
+- Khi gọi `super()`, `**kwargs` bung dict thành keyword arguments.
+
+Cần phân biệt:
+
+```python
+def some_method(self, *args, **kwargs):
+    pass
+```
+
+Trong định nghĩa hàm:
+
+- `*args` gom positional arguments.
+- `**kwargs` gom keyword arguments.
+
+Còn khi gọi hàm:
+
+```python
+super().some_method(*args, **kwargs)
+```
+
+Thì:
+
+- `*args` bung tuple ra.
+- `**kwargs` bung dict ra.
+
+---
+
+## 13. Dạng Signature Đầy Đủ
+
+Dạng đầy đủ nhất:
+
+```python
+def func(pos_only, /, pos_or_kw, *args, kw_only, **kwargs):
+    pass
+```
+
+Có thể đọc như sau:
+
+| Vị trí | Loại parameter |
+|---|---|
+| Trước `/` | Chỉ truyền bằng vị trí |
+| Giữa `/` và `*args` hoặc `*` | Truyền bằng vị trí hoặc bằng tên |
+| `*args` | Gom positional arguments còn dư |
+| Sau `*args` hoặc sau `*` | Chỉ truyền bằng keyword |
+| `**kwargs` | Gom keyword arguments còn dư |
+
+Dạng thực tế hay gặp:
+
+```python
+def func(a, b=1, *args, c, d=2, **kwargs):
+    pass
+```
+
+Đọc là:
+
+```python
+a, b        # parameter cố định, nhận argument bình thường
+*args       # gom positional arguments còn dư
+c, d        # keyword-only parameters
+**kwargs    # gom keyword arguments còn dư
+```
+
+---
+
+## 14. Các Lỗi Hay Gặp
+
+### 14.1 Gán Một Parameter Hai Lần
+
+```python
+def demo(a, b):
+    pass
+
+demo(1, a=2)
+```
+
+Lỗi vì Python đã map:
+
+```python
+a = 1
+a = 2
+```
+
+---
+
+### 14.2 Keyword Lạ Khi Không Có `**kwargs`
+
+```python
+def demo(a, b):
+    pass
+
+demo(a=1, b=2, c=3)
+```
+
+Lỗi vì `c` không có parameter nhận riêng và hàm cũng không có `**kwargs`.
+
+---
+
+### 14.3 Truyền Positional Cho Keyword-only Parameter
+
+```python
+def demo(a, *, b):
+    pass
+
+demo(1, 2)
+```
+
+Lỗi vì `b` đứng sau `*`, nên phải truyền bằng tên:
+
+```python
+demo(1, b=2)
+```
+
+---
+
+## 15. Chốt Để Nói Với Leader
+
+Nếu cần giải thích ngắn gọn:
+
+> Argument là giá trị truyền vào khi gọi hàm. Parameter là tên biến trong định nghĩa hàm. `*args` và `**kwargs` không phải là argument riêng, mà là parameter đặc biệt. `*args` gom positional arguments còn dư thành tuple. `**kwargs` gom keyword arguments còn dư thành dict. Keyword argument nào khớp với parameter cố định thì được map vào parameter đó trước, không rơi vào `kwargs`. Chỉ keyword lạ mới vào `kwargs`. Sau `*args`, các parameter phía sau là keyword-only, nên phải truyền bằng tên.
+
+---
+
+## Tài Liệu Tham Khảo
+
+- [Python Tutorial - More on Defining Functions](https://docs.python.org/3/tutorial/controlflow.html#more-on-defining-functions)
+- [Python Language Reference - Function Definitions](https://docs.python.org/3/reference/compound_stmts.html#function-definitions)
+- [Python Standard Library - inspect.Signature](https://docs.python.org/3/library/inspect.html#inspect.Signature)
+- [PEP 570 - Python Positional-Only Parameters](https://peps.python.org/pep-0570/)
+- [PEP 3102 - Keyword-Only Arguments](https://peps.python.org/pep-3102/)
