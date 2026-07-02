@@ -87,9 +87,21 @@ bool(obj)  # False
 
 ## 5. Scopes & Namespaces (Quy tắc LEGB)
 
-```python
-# Quy tắc tìm kiếm biến: Local -> Enclosing -> Global -> Built-in
+* **Namespace (Không gian tên)**: Vùng không gian ánh xạ từ tên (biến, hàm, class) sang đối tượng vùng nhớ, giúp phân biệt các tên trùng nhau ở các phạm vi khác nhau.
+* **4 cấp Scope (Quy tắc LEGB)** từ bé đến lớn:
+  * `Local`: Trong nội bộ một hàm.
+  * `Enclosing`: Hàm cha chứa hàm con (trong cấu trúc nested functions).
+  * `Global`: Cả một module.
+  * `Built-in`: Hệ thống có sẵn (như `print`, `len`, `dict`, v.v.).
 
+* **Từ khóa can thiệp Scope (Hiểu nhanh `global` & `nonlocal`)**:
+  * Khi **đọc** giá trị: Python tự động tìm kiếm từ trong ra ngoài theo quy tắc LEGB, không cần khai báo từ khóa nào.
+  * Khi **ghi/thay đổi** giá trị của biến ở scope ngoài từ bên trong một hàm:
+    * **`global`**: Khai báo muốn chỉnh sửa biến nằm ở scope **`Global`** (cấp module).
+    * **`nonlocal`**: Khai báo muốn chỉnh sửa biến nằm ở scope **`Enclosing`** (của hàm cha chứa nó). *Lưu ý: `nonlocal` không dùng được với biến toàn cục (Global)*.
+
+### Ví dụ minh họa:
+```python
 glob_var = 10  # Global variable
 
 def outer_func():

@@ -12,20 +12,13 @@ Ghi chú cá nhân về lập trình hướng đối tượng (OOP) trong Python
 
 ---
 
-## 2. Namespace
-
-* **Định nghĩa**: Vùng không gian ánh xạ tên giúp Python không bị nhầm lẫn nếu như có trùng tên.
-  * *Ví dụ*: Có 2 hàm `connect()` trùng tên, nhưng 1 hàm ở module `api.py` còn 1 hàm ở module `database.py`. Nhờ namespace, 2 module này không bị conflict với nhau. Ở đây nó thuộc về cấp global space. Với Python, 1 đối tượng có hành vi thì đều thuộc về 1 namespace.
-* **4 cấp Scope (Quy tắc LEGB)** từ bé đến lớn:
-  * `local`: Trong nội bộ 1 hàm.
-  * `enclosing`: Hàm trong hàm.
-  * `global`: Cả 1 module.
-  * `built-in`: Có sẵn, không cần import, cứ gọi là có (Cấp cao nhất của Python).
+## 2. Namespace trong Class
 
 > [!IMPORTANT]
 > **Quy tắc gọi hàm trong Class**:
 > Trong 1 class, có hàm `A` và hàm `B`. Nếu hàm `B` mà gọi hàm `A` thì cần phải dùng `self.A()`. 
 > *Lý do*: Theo quy tắc namespace LEGB, hàm `B` sẽ gọi đến local trước (tức là tìm trong hàm `B` có hàm `A` nào không) $\rightarrow$ báo lỗi nếu không thấy. Bản chất của class **không có tính chất enclosing scope** đối với các hàm con bên trong nó, nên phải dùng `self.A()` để trỏ qua namespace của đối tượng.
+
 
 ---
 
