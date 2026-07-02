@@ -124,4 +124,4 @@ print(a)  # [10, 2, 20, 4, 5]
 
 ---
 
-[13_list_slice_examples.py](file:///home/linh/VDX-intern/python-deep-notes/examples/13_list_slice_examples.py)
+[08_list_slice_examples.py](file:///home/linh/VDX-intern/python-deep-notes/examples/08_list_slice_examples.py)
