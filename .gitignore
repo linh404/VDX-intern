@@ -143,3 +143,9 @@ cython_debug/
 
 # VS Code IDE
 .vscode/
+
+# Custom ignores
+/Odoo/
+/first-month.md
+/odoo-training.md
+
