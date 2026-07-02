@@ -25,10 +25,19 @@ Ghi chú ngắn gọn về lý thuyết và cách sử dụng 4 kiểu dữ li�
 * **Khi nào dùng**: Cần lưu nhiều phần tử, cần giữ nguyên thứ tự, cho phép trùng lặp, cần thêm/sửa/xóa linh hoạt.
 * **Thao tác cơ bản**:
   * **Duyệt**: `for item in lst:`
-  * **Thêm**: `lst.append(item)` (thêm cuối), `lst.insert(index, item)` (chèn tại vị trí).
   * **Sửa**: `lst[index] = new_value`.
-  * **Xóa**: `lst.remove(value)` (xóa phần tử đầu tiên khớp giá trị), `lst.pop(index)` (xóa và lấy ra phần tử tại index, mặc định là cuối).
-  * **Lọc**: Dùng List Comprehension `[x for x in lst if condition]`.
+  * **Lọc**: Dùng List Comprehension `[x for x in lst if condition]` (Xem chi tiết tại [11_list_comprehension.md](file:///home/linh/VDX-intern/python-deep-notes/11_list_comprehension.md)).
+* **Các phương thức (methods) hay dùng**:
+  * `append(x)`: Thêm phần tử `x` vào cuối list.
+  * `extend(iterable)`: Thêm các phần tử của `iterable` vào cuối list.
+  * `insert(i, x)`: Chèn phần tử `x` vào index `i`.
+  * `remove(x)`: Xóa phần tử đầu tiên có giá trị bằng `x` (gây lỗi `ValueError` nếu không tìm thấy).
+  * `pop([i])`: Xóa và trả về phần tử tại index `i` (mặc định lấy ra phần tử cuối nếu không truyền `i`).
+  * `clear()`: Xóa sạch toàn bộ phần tử trong list.
+  * `index(x)`: Trả về index đầu tiên của phần tử bằng `x` (gây lỗi `ValueError` nếu không tìm thấy).
+  * `count(x)`: Đếm số lần xuất hiện của phần tử `x` trong list.
+  * `sort(key=None, reverse=False)`: Sắp xếp các phần tử của list tại chỗ (in-place).
+  * `reverse()`: Đảo ngược các phần tử của list tại chỗ (in-place).
 
 ### 2.2 Tuple (Bộ dữ liệu cố định)
 * **Khi nào dùng**: Dữ liệu cố định không muốn bị sửa đổi (đảm bảo tính toàn vẹn), trả về nhiều giá trị từ hàm.

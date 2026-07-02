@@ -49,6 +49,61 @@ Ghi chú cá nhân về lập trình hướng đối tượng (OOP) trong Python
   * `_protected_var` (1 dấu gạch dưới): Báo hiệu biến nội bộ (protected), không nên truy cập trực tiếp từ ngoài Class.
   * `__private_var` (2 dấu gạch dưới): Python kích hoạt cơ chế name mangling để đổi tên biến này $\rightarrow$ tránh bị ghi đè bởi class con (private).
 
+### 3.1 Phân biệt `@classmethod` và `@staticmethod`
+
+Trong một Class, ngoài các hàm đối tượng thông thường (Instance Method - nhận tham số đầu tiên là `self`), ta còn có hai loại phương thức đặc biệt khác:
+
+#### A. `@classmethod` (Phương thức của Class)
+* **Đặc điểm**: Nhận tham số đầu tiên là `cls` đại diện cho chính **Class** đó (không phải là đối tượng instance).
+* **Mục đích chính**: Tạo ra các hàm khởi tạo thay thế (Alternative Constructors) hoặc các xử lý phụ thuộc vào từng Class cụ thể. Khi kế thừa, `cls` sẽ tự động trỏ về lớp con đang gọi nó (đa hình).
+* **Ví dụ**:
+  ```python
+  class User:
+      default_role = "user"
+      
+      def __init__(self, name, role):
+          self.name = name
+          self.role = role
+          
+      @classmethod
+      def create_default(cls, name):
+          # cls sẽ linh động trỏ về User, Admin hoặc Staff tùy thuộc vào class gọi nó
+          return cls(name, cls.default_role)
+
+  class Admin(User):
+      default_role = "admin"
+
+  class Staff(User):
+      default_role = "staff"
+
+  # Gọi khởi tạo qua classmethod
+  user = User.create_default("An")     # Tạo User(name="An", role="user")
+  admin = Admin.create_default("Bình")  # Tạo Admin(name="Bình", role="admin")
+  staff = Staff.create_default("Cường") # Tạo Staff(name="Cường", role="staff")
+  ```
+  
+  > [!IMPORTANT]
+  > **Lưu ý**: Dòng return bắt buộc phải sử dụng `cls(...)` để tận dụng tính đa hình:
+  > * `return cls(name, cls.default_role)` $\rightarrow$ **Đúng**: Class con gọi sẽ kế thừa và trả về đúng instance của class con.
+  > * `return User(name, User.default_role)` $\rightarrow$ **Sai**: Nếu viết cứng tên lớp cha như vậy thì việc dùng `@classmethod` hoàn toàn vô nghĩa vì nó sẽ luôn trả về một đối tượng của lớp cha `User` với role là `"user"`.
+
+#### B. `@staticmethod` (Phương thức tĩnh)
+* **Đặc điểm**: Không nhận tham số `self` cũng không nhận `cls`. Nó giống như một hàm tự do thông thường nhưng được đặt bên trong namespace của Class vì nó có tính chất liên quan trực tiếp đến logic của Class đó.
+* **Mục đích chính**: Hỗ trợ các hàm logic tiện ích (utility functions) không cần truy cập trạng thái của class hay instance (ví dụ: validation dữ liệu).
+* **Ví dụ**:
+  ```python
+  class User:
+      def __init__(self, name, age):
+          self.name = name
+          self.age = age
+          
+      @staticmethod
+      def is_valid_age(age):
+          # Chỉ kiểm tra logic thuần túy, không cần truy cập self hay cls
+          return age >= 18
+  ```
+  Hàm `is_valid_age` không cần khởi tạo đối tượng `User` vẫn gọi được trực tiếp từ Class: `User.is_valid_age(20)`.
+
 ---
 
 ## 4. Kế thừa (Inheritance) & Ghi đè (Override)

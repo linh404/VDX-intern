@@ -72,4 +72,4 @@ Khi cần thay đổi giá trị trả về dựa trên điều kiện, ta đặ
 
 ## 6. Ví dụ cần xem
 
-[11_list_comprehension_examples.py](file:///home/linh/intern-training/python-deep-notes/examples/11_list_comprehension_examples.py)
+[11_list_comprehension_examples.py](file:///home/linh/VDX-intern/python-deep-notes/examples/11_list_comprehension_examples.py)
