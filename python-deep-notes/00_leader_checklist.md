@@ -11,3 +11,6 @@
 9. **Iterable**: [10_iterable.md](file:///home/linh/VDX-intern/python-deep-notes/10_iterable.md)
 10. **List Comprehension**: [11_list_comprehension.md](file:///home/linh/VDX-intern/python-deep-notes/11_list_comprehension.md)
 11. **Arguments & Signatures**: [12_arguments_and_signatures.md](file:///home/linh/VDX-intern/python-deep-notes/12_arguments_and_signatures.md)
+12. **Match-Case**: [13_match_case.md](file:///home/linh/VDX-intern/python-deep-notes/13_match_case.md)
+13. **Git Workflow**: [14_git_workflow.md](file:///home/linh/VDX-intern/python-deep-notes/14_git_workflow.md)
+

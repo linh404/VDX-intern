@@ -303,12 +303,37 @@ Chốt:
 
 ## 7. Dấu `/` Và `*` Trong Signature
 
-Python có thể kiểm soát cách truyền argument bằng `/` và `*`.
+Khi kết hợp cả `/` và `*` trong cùng một function signature, Python sẽ phân chia các parameter làm 3 vùng rõ rệt (dấu `/` phải luôn đứng trước `*`):
 
 ```python
 def func(positional_only, /, positional_or_keyword, *, keyword_only):
     pass
 ```
+
+| Vị trí parameter | Phân loại | Quy tắc truyền argument |
+|---|---|---|
+| Đứng **trước** dấu `/` | **Positional-only** | Bắt buộc truyền theo đúng vị trí, cấm truyền bằng tên. |
+| Đứng **giữa** `/` và `*` | **Positional-or-Keyword** | Tự do, truyền theo vị trí hay bằng tên đều được. |
+| Đứng **sau** dấu `*` | **Keyword-only** | Bắt buộc truyền bằng tên, cấm truyền theo vị trí. |
+
+### Ví dụ minh họa:
+
+```python
+def mix_demo(a, /, b, *, c):
+    print(f"a={a}, b={b}, c={c}")
+```
+
+- **Các cách gọi ĐÚNG:**
+  ```python
+  mix_demo(1, 2, c=3)      # a vị trí (1), b vị trí (2), c tên (c=3)
+  mix_demo(1, b=2, c=3)    # a vị trí (1), b tên (b=2), c tên (c=3)
+  ```
+
+- **Các cách gọi SAI (Gây lỗi TypeError):**
+  ```python
+  mix_demo(a=1, b=2, c=3)  # Lỗi! 'a' đứng trước / nên không được truyền bằng tên.
+  mix_demo(1, 2, 3)        # Lỗi! 'c' đứng sau * nên không được truyền bằng vị trí.
+  ```
 
 ---
 
