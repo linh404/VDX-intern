@@ -22,6 +22,10 @@ class Product:
     def __str__(self):
         return f"{self.name} - Giá: {self.price} - SL: {self.quantity}"
 
+    @staticmethod
+    def info(log):
+        print(log)
+
 
 class PhysicalProduct(Product):
     def __init__(self, name, price, quantity, weight):
@@ -68,3 +72,8 @@ class HybridProduct(PhysicalProduct, DigitalProduct):
             f"{self.name} - Giá: {self.price} - SL: {self.quantity} "
             f"- Cân nặng: {self.weight} kg - Dung lượng: {self.file_size} MB"
         )
+
+
+
+Product.info("đây là sản phẩm")
+
