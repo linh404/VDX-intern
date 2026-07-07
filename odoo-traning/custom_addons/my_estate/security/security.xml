@@ -1,0 +1,23 @@
+<odoo>
+    <!--    group-->
+    <record id="estate_group_user" model="res.groups">
+        <field name="name">User</field>
+        <field name="category_id" ref="base.module_category_real_estate_brokerage"/>
+    </record>
+
+    <record id="estate_group_manager" model="res.groups">
+        <field name="name">Manager</field>
+        <field name="category_id" ref="base.module_category_real_estate_brokerage"/>
+        <field name="implied_ids" eval="[Command.link(ref('estate_group_user'))]"/>
+    </record>
+
+    <!--     record rule-->
+    <record id="estate_property_rule_user" model="ir.rule">
+        <field name="name">Estate User: own or unassigned properties</field>
+        <field name="model_id" ref="model_estate_property"/>
+        <field name="groups" eval="[Command.link(ref('estate_group_user'))]"/>
+        <field name="domain_force">
+            ['|', ('user_id', '=', user.id), ('user_id', '=', False)]
+        </field>
+    </record>
+</odoo>
