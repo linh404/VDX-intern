@@ -27,7 +27,21 @@
         <field name="arch" type="xml">
             <form string="Estate Property">
                 <header>
-                    <field name="state" widget="statusbar"/>
+                    <button name="action_sold"
+                            type="object"
+                            string="Sold"
+                            class="btn-primary"
+                            invisible="state in ('sold', 'cancelled')"
+                    />
+
+                    <button name="action_cancel"
+                            type="object"
+                            string="Cancel"
+                            invisible="state in ('sold', 'cancelled')"/>
+
+                    <field name="state"
+                           widget="statusbar"
+                           statusbar_visible="new,offer_received,offer_accepted,sold"/>
                 </header>
                 <sheet>
                     <group>
@@ -52,8 +66,8 @@
                                 <field name="facades"/>
                                 <field name="garage"/>
                                 <field name="garden"/>
-                                <field name="garden_area"/>
-                                <field name="garden_orientation"/>
+                                <field name="garden_area" invisible="not garden"/>
+                                <field name="garden_orientation" invisible="not garden"/>
                                 <field name="total_area"/>
                             </group>
                         </page>
@@ -68,14 +82,26 @@
                             <field name="offer_ids">
                                 <list editable="bottom">
                                     <field name="price"/>
-                                    <field name="status"/>
                                     <field name="partner_id"/>
                                     <field name="property_id"/>
-                                    <field name="create_date"/>
+                                    <field name="create_date" readonly="1"/>
                                     <field name="validity"/>
                                     <field name="date_deadline"/>
+                                    <field name="status"/>
+                                    <button name="action_accept"
+                                            type="object"
+                                            icon="fa-check"
+                                            title="Accept"/>
+
+                                    <button name="action_refuse"
+                                            type="object"
+                                            icon="fa-times"
+                                            title="Refuse"/>
                                 </list>
                             </field>
+                            <button name="%(my_estate.estate_property_offer_action)d"
+                                    type="action"
+                                    string="Open Offers"/>
                         </page>
                     </notebook>
                 </sheet>
@@ -123,6 +149,4 @@
               parent="estate_menu_root"
               action="estate_property_action"
               sequence="1"/>
-
-
 </odoo>

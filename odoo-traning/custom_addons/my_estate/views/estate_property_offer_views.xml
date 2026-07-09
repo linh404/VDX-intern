@@ -9,7 +9,7 @@
                 <field name="status"/>
                 <field name="partner_id"/>
                 <field name="property_id"/>
-                <field name="create_date"/>
+                <field name="create_date" readonly="1"/>
                 <field name="validity"/>
                 <field name="date_deadline"/>
             </list>
@@ -27,7 +27,7 @@
                         <field name="status"/>
                         <field name="partner_id"/>
                         <field name="property_id"/>
-                        <field name="create_date"/>
+                        <field name="create_date" readonly="1"/>
                         <field name="validity"/>
                         <field name="date_deadline"/>
                     </group>
