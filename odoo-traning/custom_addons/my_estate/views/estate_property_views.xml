@@ -9,7 +9,9 @@
                 <field name="bedrooms"/>
                 <field name="living_area" string="Living Area (sqm)"/>
                 <field name="expected_price"/>
-                <field name="selling_price"/>
+                <field name="selling_price"
+                       readonly="True"
+                />
                 <field name="date_availability"/>
                 <field name="property_type_id"/>
                 <field name="tag_ids" widget="many2many_tags"/>
@@ -34,9 +36,9 @@
                             invisible="state in ('sold', 'cancelled')"
                     />
 
-                    <button name="action_cancel"
+                    <button name="action_open_cancel_wizard"
                             type="object"
-                            string="Cancel"
+                            string="Cancel Listing"
                             invisible="state in ('sold', 'cancelled')"/>
 
                     <field name="state"
@@ -54,13 +56,16 @@
                         </group>
                         <group>
                             <field name="expected_price"/>
-                            <field name="selling_price"/>
+                            <field name="selling_price"
+                                   readonly="True"
+                            />
                         </group>
                     </group>
                     <notebook>
                         <page string="Description">
                             <group>
                                 <field name="description"/>
+                                <field name="cancel_reason" readonly="1" invisible="not cancel_reason"/>
                                 <field name="bedrooms"/>
                                 <field name="living_area" string="Living Area (sqm)"/>
                                 <field name="facades"/>
@@ -91,12 +96,12 @@
                                     <button name="action_accept"
                                             type="object"
                                             icon="fa-check"
-                                            title="Accept"/>
+                                            title="Accept Offer"/>
 
                                     <button name="action_refuse"
                                             type="object"
                                             icon="fa-times"
-                                            title="Refuse"/>
+                                            title="Refuse Offer"/>
                                 </list>
                             </field>
                             <button name="%(my_estate.estate_property_offer_action)d"

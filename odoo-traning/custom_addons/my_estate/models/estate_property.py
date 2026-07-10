@@ -8,10 +8,24 @@ class EstateProperty(models.Model):
     _name = 'estate.property'
     _description = 'My Estate Property'
     _order = "id desc"
-    _rec_name = "postcode"
+    _rec_name = "name"
+    # constraints
+    _sql_constraints = [
+        (
+            "check_expected_price",
+            "CHECK(expected_price > 0)",
+            "The expected price must be strictly positive.",
+        ),
+        (
+            "check_selling_price",
+            "CHECK(selling_price >= 0)",
+            "The selling price must be positive.",
+        ),
+    ]
 
-    name = fields.Char(string="Tên bất động sản")
+    name = fields.Char(string="Estate Property", require="True")
     description = fields.Text()
+    cancel_reason = fields.Text(copy=False)
     postcode = fields.Char()
     date_availability = fields.Date(
         copy=False,
@@ -103,23 +117,27 @@ class EstateProperty(models.Model):
         for record in self:
             if record.state == "sold":
                 raise UserError("A sold property cannot be cancelled.")
+            if record.offer_ids.filtered(lambda offer: offer.status == "accepted"):
+                raise UserError("A property with an accepted offer cannot be cancelled.")
+            record.offer_ids.filtered(
+                lambda offer: offer.status != "refused"
+            ).action_refuse()
             record.state = "cancelled"
         return True
 
+    def action_open_cancel_wizard(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Cancel Property",
+            "res_model": "estate.property.cancel.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {
+                "default_property_id": self.id,
+            },
+        }
 
-    # constraints
-    _sql_constraints = [
-        (
-            "check_expected_price",
-            "CHECK(expected_price > 0)",
-            "The expected price must be strictly positive.",
-        ),
-        (
-            "check_selling_price",
-            "CHECK(selling_price >= 0)",
-            "The selling price must be positive.",
-        ),
-    ]
 
     @api.constrains("expected_price", "selling_price")
     def _check_selling_price(self):

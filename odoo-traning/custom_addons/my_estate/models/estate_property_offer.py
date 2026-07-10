@@ -1,5 +1,7 @@
 from datetime import timedelta
+from typing import Reversible
 from odoo import fields, models, api
+from odoo.api import IdType
 from odoo.exceptions import UserError
 
 
@@ -9,18 +11,21 @@ class EstatePropertyOffer(models.Model):
     _order = "price desc"
     _rec_name = "name"
 
-    name = fields.Char(default="Test _rec_name")
+    name = fields.Char(default="")
     price = fields.Float()
+    create_date = fields.Date(default=lambda self: fields.Date.today())
     status = fields.Selection(
         [
+            ("pending", "Pending"),
             ("accepted", "Accepted"),
             ("refused", "Refused"),
         ],
         copy=False,
+        default="pending"
     )
 
     partner_id = fields.Many2one("res.partner", required=True, string="Partner")
-    property_id = fields.Many2one("estate.property", required=True)
+    property_id = fields.Many2one("estate.property", required=True, ondelete="cascade")
 
     validity = fields.Integer(default=7)
     date_deadline = fields.Date(
@@ -42,25 +47,38 @@ class EstatePropertyOffer(models.Model):
             if record.date_deadline:
                 record.validity = (record.date_deadline - create_date).days
 
+    # override method
+    @api.model_create_multi
+    def create(self, vals_list):
+        offers = super().create(vals_list)
+        for offer in offers:
+            if offer.property_id.state == "new":
+                offer.property_id.state = "offer_received"
+        return offers
+
     # action func
     def action_accept(self):
         for record in self:
+            if record.property_id.state in ("sold", "cancelled"):
+                raise UserError("You cannot accept an offer for a sold or cancelled property.")
             accepted_offer = record.property_id.offer_ids.filtered(
                 lambda offer: offer.status == "accepted" and offer != record
             )
 
             if accepted_offer:
                 raise UserError("Only one offer can be accepted for a property.")
-
+            other_offers = record.property_id.offer_ids - record
+            other_offers.filtered(lambda offer: offer.status != "refused").action_refuse()
             record.status = "accepted"
             record.property_id.buyer_id = record.partner_id
             record.property_id.selling_price = record.price
             record.property_id.state = "offer_accepted"
-
         return True
 
     def action_refuse(self):
         for record in self:
+            if record.property_id.state in ("sold", "cancelled"):
+                raise UserError("You cannot refuse an offer for a sold or canceled property.")
             record.status = "refused"
         return True
 
