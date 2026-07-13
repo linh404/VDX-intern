@@ -34,7 +34,8 @@ class EstateProperty(models.Model):
     expected_price = fields.Float(required=True)
     selling_price = fields.Float(
         required=True,
-        copy=False
+        copy=False,
+        default="0"
     )
     bedrooms = fields.Integer(default=2)
     living_area = fields.Integer()
@@ -105,7 +106,7 @@ class EstateProperty(models.Model):
             self.garden_area = 0
             self.garden_orientation = False
 
-    # action type object
+    # action sold
     def action_sold(self):
         for record in self:
             if record.state == "cancelled":
@@ -113,6 +114,7 @@ class EstateProperty(models.Model):
             record.state = "sold"
         return True
 
+    # action cancel
     def action_cancel(self):
         for record in self:
             if record.state == "sold":
@@ -138,7 +140,6 @@ class EstateProperty(models.Model):
             },
         }
 
-
     @api.constrains("expected_price", "selling_price")
     def _check_selling_price(self):
         for record in self:
@@ -156,3 +157,18 @@ class EstateProperty(models.Model):
                 raise ValidationError(
                     "The selling price cannot be lower than 90% of the expected price."
                 )
+
+    def action_cancel_draft(self):
+        sold_properties = self.filtered(
+            lambda property_record:
+            property_record.state == "sold"
+        )
+
+        if sold_properties:
+            raise UserError(
+                "Không thể hủy bất động sản đã bán."
+            )
+
+        self.write({
+            "state": "cancelled",
+        })
