@@ -53,20 +53,20 @@ class EstatePropertyOffer(models.Model):
         offers = super().create(vals_list)
         for offer in offers:
             if offer.property_id.state == "new":
-                offer.property_id.state = "offer_received"
+                offer.property_id.sudo().state = "offer_received"
         return offers
 
     # action func
     def action_accept(self):
         for record in self:
             if record.property_id.state in ("sold", "cancelled"):
-                raise UserError("You cannot accept an offer for a sold or cancelled property.")
+                raise UserError(self.env._("You cannot accept an offer for a sold or cancelled property."))
             accepted_offer = record.property_id.offer_ids.filtered(
                 lambda offer: offer.status == "accepted" and offer != record
             )
 
             if accepted_offer:
-                raise UserError("Only one offer can be accepted for a property.")
+                raise UserError(self.env._("Only one offer can be accepted for a property."))
             other_offers = record.property_id.offer_ids - record
             other_offers.filtered(lambda offer: offer.status != "refused").action_refuse()
             record.status = "accepted"
@@ -78,7 +78,7 @@ class EstatePropertyOffer(models.Model):
     def action_refuse(self):
         for record in self:
             if record.property_id.state in ("sold", "cancelled"):
-                raise UserError("You cannot refuse an offer for a sold or canceled property.")
+                raise UserError(self.env._("You cannot refuse an offer for a sold or canceled property."))
             record.status = "refused"
         return True
 
