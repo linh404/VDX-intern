@@ -50,7 +50,9 @@
                         <group>
                             <field name="name"/>
                             <field name="property_type_id"/>
-                            <field name="tag_ids" widget="many2many_tags"/>
+                            <field name="tag_ids"
+                                   widget="many2many_tags"
+                                   domain="[('id', 'in', [4,5,6])]"/>
                             <field name="postcode"/>
                             <field name="date_availability"/>
                         </group>
@@ -72,6 +74,7 @@
                                 <field name="garage"/>
                                 <field name="garden"/>
                                 <field name="garden_area" invisible="not garden"/>
+                                <field name="garden_orientation" invisible="not garden"/>
                                 <field name="garden_orientation" invisible="not garden"/>
                                 <field name="total_area"/>
                             </group>
@@ -126,7 +129,7 @@
                 <field name="bedrooms"/>
                 <field name="living_area" string="Living Area (sqm)"/>
                 <field name="facades"/>
-<!--                <separator/>-->
+                <!--                <separator/>-->
                 <field name="state"/>
                 <filter
                         name="available"
@@ -140,14 +143,14 @@
                             string="Postcode"
                             context="{'group_by': 'postcode'}"
                     />
-                </group>
-                 <filter name="property_type"
+                    <filter name="property_type"
                             string="Property Type"
                             context="{'group_by': 'property_type_id'}"/>
+                </group>
                 <searchpanel>
                     <field name="property_type_id" string="Property Type" icon="fa-building"/>
                     <field name="state" string="Status" icon="fa-tasks" select="multi"/>
-                    <field name="tag_ids" string="Tags" icon="fa-tags" select="multi"/>
+                    <field name="tag_ids" string="Tags" icon="fa-tags" select="multi" expand="1"/>
                 </searchpanel>
             </search>
         </field>

@@ -1,4 +1,5 @@
 from dateutil.relativedelta import relativedelta
+
 from odoo import fields, models, api
 from odoo.exceptions import ValidationError, UserError
 from odoo.tools import float_is_zero, float_compare
@@ -23,7 +24,7 @@ class EstateProperty(models.Model):
         ),
     ]
 
-    name = fields.Char(string="Estate Property", require="True")
+    name = fields.Char(string="Estate Property", required=True)
     description = fields.Text()
     cancel_reason = fields.Text(copy=False)
     postcode = fields.Char()
@@ -75,7 +76,11 @@ class EstateProperty(models.Model):
         default=lambda self: self.env.user,
     )
 
-    tag_ids = fields.Many2many("estate.property.tag", string="Tags")
+    tag_ids = fields.Many2many(
+        "estate.property.tag",
+        string="Tags",
+        domain=[('id', 'in', [1, 2, 3])]
+    )
 
     offer_ids = fields.One2many(
         "estate.property.offer",
