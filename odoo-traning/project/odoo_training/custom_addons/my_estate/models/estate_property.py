@@ -5,6 +5,7 @@ from odoo.exceptions import ValidationError, UserError
 from odoo.tools import float_is_zero, float_compare
 
 
+# Mentor Q8
 class EstateProperty(models.Model):
     _name = 'estate.property'
     _description = 'My Estate Property'
@@ -67,6 +68,7 @@ class EstateProperty(models.Model):
         default="new",
     )
 
+    # Mentor Q5/Q17
     property_type_id = fields.Many2one("estate.property.type", string="Property Type")
 
     buyer_id = fields.Many2one("res.partner", string="Buyer", copy=False)
@@ -79,6 +81,7 @@ class EstateProperty(models.Model):
     tag_ids = fields.Many2many(
         "estate.property.tag",
         string="Tags",
+        # Mentor Q12/Q15
         domain=[('id', 'in', [1, 2, 3])]
     )
 
@@ -89,21 +92,30 @@ class EstateProperty(models.Model):
     )
 
     # Computed, Onchange
+    # Mentor Q11
     total_area = fields.Integer(compute="_compute_total_area")
-    best_price = fields.Float(compute="_compute_best_price")
+    # Mentor Q7/Q10/Q11
+    best_price = fields.Float(
+        compute="_compute_best_price",
+        store=True,
+        compute_sudo=True,
+    )
 
     @api.depends("living_area", "garden_area")
     def _compute_total_area(self):
+        # Mentor Q6/Q9
         for record in self:
             record.total_area = record.living_area + record.garden_area
 
     @api.depends("offer_ids.price")
     def _compute_best_price(self):
+        # Mentor Q6/Q9
         for record in self:
             record.best_price = max(record.offer_ids.mapped("price"), default=0.0)
 
     @api.onchange("garden")
     def _onchange_garden(self):
+        # Mentor Q6/Q9
         if self.garden:
             self.garden_area = 10
             self.garden_orientation = "north"
@@ -134,6 +146,7 @@ class EstateProperty(models.Model):
 
     def action_open_cancel_wizard(self):
         self.ensure_one()
+        # Mentor Q13/Q18
         return {
             "type": "ir.actions.act_window",
             "name": self.env._("Cancel Property"),

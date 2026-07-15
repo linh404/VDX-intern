@@ -5,6 +5,7 @@ from odoo.api import IdType
 from odoo.exceptions import UserError
 
 
+# Mentor Q8
 class EstatePropertyOffer(models.Model):
     _name = "estate.property.offer"
     _description = "Real Estate Property Offer"
@@ -25,6 +26,7 @@ class EstatePropertyOffer(models.Model):
     )
 
     partner_id = fields.Many2one("res.partner", required=True, string="Partner")
+    # Mentor Q5/Q17
     property_id = fields.Many2one("estate.property", required=True, ondelete="cascade")
 
     validity = fields.Integer(default=7)
@@ -37,6 +39,7 @@ class EstatePropertyOffer(models.Model):
     # Inverse
     @api.depends("create_date", "validity")
     def _compute_date_deadline(self):
+        # Mentor Q6/Q9
         for record in self:
             create_date = fields.Date.to_date(record.create_date) or fields.Date.context_today(record)
             record.date_deadline = create_date + timedelta(days=record.validity)
@@ -50,6 +53,7 @@ class EstatePropertyOffer(models.Model):
     # override method
     @api.model_create_multi
     def create(self, vals_list):
+        # Mentor Q9
         offers = super().create(vals_list)
         for offer in offers:
             if offer.property_id.state == "new":

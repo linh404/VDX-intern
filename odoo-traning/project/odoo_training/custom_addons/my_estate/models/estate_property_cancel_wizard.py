@@ -1,6 +1,7 @@
 from odoo import fields, models
 
 
+# Mentor Q8
 class EstatePropertyCancelWizard(models.TransientModel):
     _name = "estate.property.cancel.wizard"
     _description = "Estate Property Cancel Wizard"
