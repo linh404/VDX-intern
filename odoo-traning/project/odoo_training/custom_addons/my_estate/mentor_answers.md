@@ -577,3 +577,54 @@ Nếu muốn tự điền field cha khi mở popup tạo record liên quan, có 
 ```
 
 Nhưng với `One2many`, việc này thường đã được xử lý qua inverse field. Với `Many2many`, phải hiểu là nó link qua bảng trung gian, không phải qua một khóa ngoại nằm trên record con.
+
+## Q24. Action archive trong Odoo
+
+`active` là một field có ý nghĩa đặc biệt trong Odoo. Khi model có field Boolean tên `active`, Odoo dùng field này như cơ chế archive/unarchive mềm cho record.
+
+Quy ước thường dùng:
+
+```python
+active = fields.Boolean(default=True)
+```
+
+`active=True` nghĩa là record đang hoạt động. `active=False` nghĩa là record đã được archive. Archive không xóa record khỏi database, mà chỉ làm record bị ẩn khỏi phần lớn search/list mặc định.
+
+Khi model có field `active`, Odoo có sẵn các method sau trên recordset:
+
+```python
+# active=True -> active=False
+record.action_archive()
+
+# active=False -> active=True
+record.action_unarchive()
+
+# Đảo giá trị active
+record.toggle_active()
+```
+
+Trên view, khi model có field `active`, Odoo có thể hiển thị action Archive/Unarchive trong menu Action để thao tác với record mà không cần tự viết server action riêng.
+
+Mặc định ORM dùng context:
+
+```python
+{"active_test": True}
+```
+
+Vì vậy các record có `active=False` thường bị loại khỏi kết quả search/list. Muốn tìm record đã archive trong search view thì thêm filter explicit:
+
+```xml
+<filter name="archived"
+        string="Archived"
+        domain="[('active', '=', False)]"/>
+```
+
+Nếu muốn mở list và thấy cả record active lẫn archived, có thể tắt cơ chế lọc mặc định bằng context trên window action:
+
+```xml
+<field name="context">
+    {'active_test': False}
+</field>
+```
+
+Trong module này, `estate.property` đã có field `active = fields.Boolean(default=True)`, search view có filter `Archived`, và action mở list có context `{'active_test': False}` để không tự loại record archived khỏi danh sách.

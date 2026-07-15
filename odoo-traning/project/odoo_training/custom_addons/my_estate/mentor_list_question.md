@@ -25,6 +25,7 @@
 21. Relational field khai báo `domain` ở model và field đó trong XML view cũng khai báo `domain` thì áp dụng hoặc xung đột như thế nào?
 22. Computed field `store=True` và `store=False` check quyền như thế nào? Liên quan gì đến `compute_sudo`?
 23. Relational view: `Many2one` và `One2many` có phải luôn là một cặp không? Vì sao tạo record từ `One2many` tự liên kết record cha, còn `Many2many` thì không tự điền inverse giống vậy?
+24. Action archive trong Odoo hoạt động như thế nào? Field `active` và context `active_test` liên quan gì đến việc ẩn/hiện record archived?
 
 ## Kết quả đối chiếu code
 
@@ -53,3 +54,4 @@
 | Q21 | Có áp dụng | `tag_ids` có `domain` ở model field và có `domain` khác tại field trong form view. |
 | Q22 | Có áp dụng | `best_price` là computed field `store=True, compute_sudo=True`; `total_area` là computed field non-stored. |
 | Q23 | Có áp dụng | `offer_ids` là `One2many` qua inverse `property_id`; `property_id` là `Many2one`; `tag_ids` là `Many2many` dùng bảng trung gian. |
+| Q24 | Có áp dụng | `models/estate_property.py` có field `active`; `views/estate_property_views.xml` có filter Archived và action context `{'active_test': False}`. |

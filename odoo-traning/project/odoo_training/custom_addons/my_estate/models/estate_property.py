@@ -24,7 +24,6 @@ class EstateProperty(models.Model):
             "The selling price must be positive.",
         ),
     ]
-
     name = fields.Char(string="Estate Property", required=True)
     description = fields.Text()
     cancel_reason = fields.Text(copy=False)
@@ -53,6 +52,7 @@ class EstateProperty(models.Model):
             ("west", "West"),
         ]
     )
+    # Mentor Q24
     active = fields.Boolean(default=True)
 
     state = fields.Selection(
@@ -81,10 +81,11 @@ class EstateProperty(models.Model):
     tag_ids = fields.Many2many(
         "estate.property.tag",
         string="Tags",
-        # Mentor Q12/Q15
+        # Mentor Q12/Q15; Mentor Q21
         domain=[('id', 'in', [1, 2, 3])]
     )
 
+    # Mentor Q23
     offer_ids = fields.One2many(
         "estate.property.offer",
         "property_id",
@@ -92,9 +93,9 @@ class EstateProperty(models.Model):
     )
 
     # Computed, Onchange
-    # Mentor Q11
+    # Mentor Q11; Mentor Q22
     total_area = fields.Integer(compute="_compute_total_area")
-    # Mentor Q7/Q10/Q11
+    # Mentor Q7/Q10/Q11; Mentor Q22
     best_price = fields.Float(
         compute="_compute_best_price",
         store=True,

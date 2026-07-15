@@ -26,7 +26,7 @@ class EstatePropertyOffer(models.Model):
     )
 
     partner_id = fields.Many2one("res.partner", required=True, string="Partner")
-    # Mentor Q5/Q17
+    # Mentor Q5/Q17; Mentor Q23
     property_id = fields.Many2one("estate.property", required=True, ondelete="cascade")
 
     validity = fields.Integer(default=7)
