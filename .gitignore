@@ -146,6 +146,8 @@ cython_debug/
 
 # Custom ignores
 /Odoo/
+/odoo-18/
+/odoo-19/
 /first-month.md
 /odoo-training.md
 
