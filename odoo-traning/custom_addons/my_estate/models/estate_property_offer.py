@@ -1,7 +1,5 @@
 from datetime import timedelta
-from typing import Reversible
 from odoo import fields, models, api
-from odoo.api import IdType
 from odoo.exceptions import UserError
 
 
@@ -86,11 +84,7 @@ class EstatePropertyOffer(models.Model):
             record.status = "refused"
         return True
 
-    # constraints
-    _sql_constraints = [
-        (
-            "check_price",
-            "CHECK(price > 0)",
-            "The offer price must be strictly positive.",
-        ),
-    ]
+    _check_price = models.Constraint(
+        "CHECK(price > 0)",
+        "The offer price must be strictly positive.",
+    )

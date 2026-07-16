@@ -1,0 +1,6 @@
+<odoo>
+    <record id="group_discount_approver" model="res.groups">
+        <field name="name">Discount Approver</field>
+        <field name="comment">Can approve sales orders waiting for discount approval.</field>
+    </record>
+</odoo>

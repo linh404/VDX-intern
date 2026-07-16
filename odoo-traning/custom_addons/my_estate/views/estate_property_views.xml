@@ -147,7 +147,7 @@
                 />
 
                 <!-- Mentor Q20 -->
-                <group expand="1" string="Group By">
+                <group>
                     <filter
                             name="postcode"
                             string="Postcode"

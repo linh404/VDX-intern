@@ -11,19 +11,14 @@ class EstateProperty(models.Model):
     _description = 'My Estate Property'
     _order = "id desc"
     _rec_name = "name"
-    # constraints
-    _sql_constraints = [
-        (
-            "check_expected_price",
-            "CHECK(expected_price > 0)",
-            "The expected price must be strictly positive.",
-        ),
-        (
-            "check_selling_price",
-            "CHECK(selling_price >= 0)",
-            "The selling price must be positive.",
-        ),
-    ]
+    _check_expected_price = models.Constraint(
+        "CHECK(expected_price > 0)",
+        "The expected price must be strictly positive.",
+    )
+    _check_selling_price = models.Constraint(
+        "CHECK(selling_price >= 0)",
+        "The selling price must be positive.",
+    )
     name = fields.Char(string="Estate Property", required=True)
     description = fields.Text()
     cancel_reason = fields.Text(copy=False)
