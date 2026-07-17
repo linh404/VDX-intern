@@ -1,0 +1,20 @@
+<odoo>
+    <record id="estate_property_report_wizard_view_form" model="ir.ui.view">
+        <field name="name">estate.property.report.wizard.form</field>
+        <field name="model">estate.property.report.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Print Estate Property Report">
+                <group>
+                    <field name="property_id"/>
+                </group>
+                <footer>
+                    <button name="action_print_report"
+                            type="object"
+                            string="Print"
+                            class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

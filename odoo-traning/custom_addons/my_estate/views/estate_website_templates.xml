@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="estate_property_list" name="Estate Property List">
+        <main>
+            <h1>Estate Properties</h1>
+            <p><a href="/estate/offer/new">Make an Offer</a></p>
+
+            <p t-if="not properties">No properties are available.</p>
+
+            <ul t-if="properties">
+                <li t-foreach="properties" t-as="p">
+                    <a t-att-href="p.access_url" t-out="p.name"/>
+                    -
+                    <span t-field="p.expected_price"/>
+                    -
+                    <a t-attf-href="/estate/offer/new?property_id=#{p.id}">Offer</a>
+                </li>
+            </ul>
+        </main>
+    </template>
+
+    <template id="estate_property_detail" name="Estate Property Detail">
+        <main>
+            <t t-set="p" t-value="estate_property"/>
+
+            <p><a href="/estate/properties">Back to properties</a></p>
+            <p t-if="offer_created">Your offer has been submitted.</p>
+
+            <h1 t-out="p.name"/>
+            <p>State: <span t-field="p.state"/></p>
+            <p t-if="p.property_type_id">Type: <span t-field="p.property_type_id"/></p>
+            <p>Expected Price: <span t-field="p.expected_price"/></p>
+            <p>Bedrooms: <span t-field="p.bedrooms"/></p>
+            <p>Living Area: <span t-field="p.living_area"/> sqm</p>
+            <p t-if="p.description">Description: <span t-out="p.description"/></p>
+
+            <p>
+                <a t-attf-href="/estate/offer/new?property_id=#{p.id}">Make an Offer</a>
+                |
+                <a t-attf-href="/estate/property/#{p.id}/report/html">View Report</a>
+            </p>
+
+            <h2>Offers</h2>
+            <p t-if="not p.offer_ids">No offers yet.</p>
+            <ul t-if="p.offer_ids">
+                <li t-foreach="p.offer_ids" t-as="offer">
+                    <span t-field="offer.partner_id"/>:
+                    <span t-field="offer.price"/>
+                    <span t-if="offer.status">(<span t-field="offer.status"/>)</span>
+                </li>
+            </ul>
+        </main>
+    </template>
+
+    <template id="estate_offer_form" name="Estate Offer Form">
+        <main>
+            <p><a href="/estate/properties">Back to properties</a></p>
+            <h1>New Property Offer</h1>
+
+            <div t-if="errors">
+                <h2>Errors</h2>
+                <ul>
+                    <li t-foreach="errors.values()" t-as="error" t-out="error"/>
+                </ul>
+            </div>
+
+            <form action="/estate/offer" method="post">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                <p>
+                    <label for="property_id">Property</label>
+                    <select id="property_id" name="property_id" required="required" t-att-disabled="not properties">
+                        <option value="">Choose a property</option>
+                        <option t-foreach="properties" t-as="p" t-att-value="p.id" t-att-selected="selected_property_id == p.id">
+                            <t t-out="p.name"/> - <t t-out="p.expected_price"/>
+                        </option>
+                    </select>
+                </p>
+
+                <p>
+                    <label for="partner_name">Your Name</label>
+                    <input id="partner_name" name="partner_name" required="required" t-att-value="form.get('partner_name', '')"/>
+                </p>
+
+                <p>
+                    <label for="partner_email">Email</label>
+                    <input id="partner_email" type="email" name="partner_email" t-att-value="form.get('partner_email', '')"/>
+                </p>
+
+                <p>
+                    <label for="price">Offer Price</label>
+                    <input id="price" type="number" name="price" min="0.01" step="0.01" required="required" t-att-value="form.get('price', '')"/>
+                </p>
+
+                <p>
+                    <label for="validity">Validity Days</label>
+                    <input id="validity" type="number" name="validity" min="1" step="1" t-att-value="form.get('validity', '')"/>
+                </p>
+
+                <button type="submit" t-att-disabled="not properties">Submit Offer</button>
+            </form>
+        </main>
+    </template>
+</odoo>

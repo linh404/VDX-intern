@@ -8,14 +8,17 @@
     "data": [
         "security/security.xml",
         "security/ir.model.access.csv",
+        "report/estate_property_report.xml",
         "views/estate_menus.xml",
         "views/estate_property_cancel_wizard_views.xml",
+        "views/estate_property_report_wizard_views.xml",
         "views/estate_property_offer_views.xml",
         "views/estate_property_views.xml",
         "views/estate_property_type_views.xml",
         "views/estate_property_tag_views.xml",
+        "views/estate_website_templates.xml",
     ],
-    "depends": ["base"],
+    "depends": ["base", "website", "mail", "portal"],
     "application": True,
     "installable": True,
 }

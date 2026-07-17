@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_estate_property">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="my_estate.report_estate_property_document"/>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_estate_property_document">
+        <t t-call="web.external_layout">
+            <div class="page">
+                <div class="oe_structure"/>
+
+                <h2>Estate Property Report</h2>
+                <h3 t-field="doc.name"/>
+
+                <table class="table table-sm table-borderless mt-4">
+                    <tr>
+                        <td class="fw-bold">Property Type</td>
+                        <td><span t-field="doc.property_type_id"/></td>
+                        <td class="fw-bold">Expected Price</td>
+                        <td class="text-end"><span t-field="doc.expected_price"/></td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">State</td>
+                        <td><span t-field="doc.state"/></td>
+                        <td class="fw-bold">Best Offer</td>
+                        <td class="text-end"><span t-field="doc.best_price"/></td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Postcode</td>
+                        <td><span t-field="doc.postcode"/></td>
+                        <td class="fw-bold">Selling Price</td>
+                        <td class="text-end"><span t-field="doc.selling_price"/></td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Available From</td>
+                        <td><span t-field="doc.date_availability"/></td>
+                        <td class="fw-bold">Salesperson</td>
+                        <td class="text-end"><span t-field="doc.salesperson_id"/></td>
+                    </tr>
+                </table>
+
+                <h4 class="mt-4">Property Details</h4>
+                <table class="table table-sm">
+                    <tr>
+                        <td class="fw-bold">Bedrooms</td>
+                        <td><span t-field="doc.bedrooms"/></td>
+                        <td class="fw-bold">Living Area</td>
+                        <td><span t-field="doc.living_area"/> sqm</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Total Area</td>
+                        <td><span t-field="doc.total_area"/> sqm</td>
+                        <td class="fw-bold">Facades</td>
+                        <td><span t-field="doc.facades"/></td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Garage</td>
+                        <td>
+                            <span t-if="doc.garage">Yes</span>
+                            <span t-else="">No</span>
+                        </td>
+                        <td class="fw-bold">Garden</td>
+                        <td>
+                            <span t-if="doc.garden">
+                                Yes, <span t-field="doc.garden_area"/> sqm
+                                <span t-if="doc.garden_orientation">(<span t-field="doc.garden_orientation"/>)</span>
+                            </span>
+                            <span t-else="">No</span>
+                        </td>
+                    </tr>
+                </table>
+
+                <div t-if="doc.description" class="mt-4">
+                    <h4>Description</h4>
+                    <p t-field="doc.description"/>
+                </div>
+
+                <div t-if="doc.tag_ids" class="mt-4">
+                    <h4>Tags</h4>
+                    <p t-out="', '.join(doc.tag_ids.mapped('name'))"/>
+                </div>
+
+                <h4 class="mt-4">Offers</h4>
+                <table class="table table-sm o_main_table">
+                    <thead>
+                        <tr>
+                            <th>Partner</th>
+                            <th class="text-end">Price</th>
+                            <th>Status</th>
+                            <th>Deadline</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-if="not doc.offer_ids">
+                            <td colspan="4" class="text-muted">No offers yet.</td>
+                        </tr>
+                        <tr t-foreach="doc.offer_ids" t-as="offer">
+                            <td><span t-field="offer.partner_id"/></td>
+                            <td class="text-end"><span t-field="offer.price"/></td>
+                            <td><span t-field="offer.status"/></td>
+                            <td><span t-field="offer.date_deadline"/></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="oe_structure"/>
+            </div>
+        </t>
+    </template>
+
+    <record id="action_report_estate_property" model="ir.actions.report">
+        <field name="name">Estate Property</field>
+        <field name="model">estate.property</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">my_estate.report_estate_property</field>
+        <field name="report_file">my_estate.report_estate_property</field>
+        <field name="print_report_name">'Estate Property - %s' % (object.name)</field>
+        <field name="binding_model_id" eval="False"/>
+    </record>
+</odoo>

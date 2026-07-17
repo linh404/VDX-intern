@@ -8,6 +8,7 @@ from odoo.tools import float_is_zero, float_compare
 # Mentor Q8
 class EstateProperty(models.Model):
     _name = 'estate.property'
+    _inherit = ["portal.mixin", "mail.thread", "mail.activity.mixin"]
     _description = 'My Estate Property'
     _order = "id desc"
     _rec_name = "name"
@@ -27,11 +28,12 @@ class EstateProperty(models.Model):
         copy=False,
         default=lambda self: fields.Date.today() + relativedelta(months=3),
     )
-    expected_price = fields.Float(required=True)
+    expected_price = fields.Float(required=True, tracking=True)
     selling_price = fields.Float(
         required=True,
         copy=False,
-        default="0"
+        default="0",
+        tracking=True,
     )
     bedrooms = fields.Integer(default=2)
     living_area = fields.Integer()
@@ -61,16 +63,18 @@ class EstateProperty(models.Model):
         required=True,
         copy=False,
         default="new",
+        tracking=True,
     )
 
     # Mentor Q5/Q17
     property_type_id = fields.Many2one("estate.property.type", string="Property Type")
 
-    buyer_id = fields.Many2one("res.partner", string="Buyer", copy=False)
+    buyer_id = fields.Many2one("res.partner", string="Buyer", copy=False, tracking=True)
     salesperson_id = fields.Many2one(
         "res.users",
         string="Salesperson",
         default=lambda self: self.env.user,
+        tracking=True,
     )
 
     tag_ids = fields.Many2many(
@@ -96,6 +100,11 @@ class EstateProperty(models.Model):
         store=True,
         compute_sudo=True,
     )
+
+    def _compute_access_url(self):
+        super()._compute_access_url()
+        for record in self:
+            record.access_url = f"/estate/property/{record.id}"
 
     @api.depends("living_area", "garden_area")
     def _compute_total_area(self):
@@ -147,6 +156,19 @@ class EstateProperty(models.Model):
             "type": "ir.actions.act_window",
             "name": self.env._("Cancel Property"),
             "res_model": "estate.property.cancel.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {
+                "default_property_id": self.id,
+            },
+        }
+
+    def action_open_report_wizard(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.env._("Print Estate Property Report"),
+            "res_model": "estate.property.report.wizard",
             "view_mode": "form",
             "target": "new",
             "context": {

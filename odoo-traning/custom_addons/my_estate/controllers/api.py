@@ -3,7 +3,7 @@ from odoo.exceptions import UserError
 from odoo.http import request
 
 
-class EstatePropertyController(http.Controller):
+class EstatePropertyApiController(http.Controller):
     @http.route(
         "/my_estate/properties",
         type="jsonrpc",
