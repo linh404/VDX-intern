@@ -11,7 +11,6 @@
         "report/estate_property_report.xml",
         "views/estate_menus.xml",
         "wizard/estate_property_cancel_wizard_views.xml",
-        "wizard/estate_property_report_wizard_views.xml",
         "views/estate_property_offer_views.xml",
         "views/estate_property_views.xml",
         "views/estate_property_type_views.xml",

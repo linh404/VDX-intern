@@ -12,7 +12,6 @@ class EstatePropertyOffer(models.Model):
 
     name = fields.Char(default="")
     price = fields.Float()
-    create_date = fields.Date(default=lambda self: fields.Date.today())
     status = fields.Selection(
         [
             ("pending", "Pending"),

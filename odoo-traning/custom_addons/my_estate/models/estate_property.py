@@ -16,7 +16,7 @@ class EstateProperty(models.Model):
         "CHECK(expected_price > 0)",
         "The expected price must be strictly positive.",
     )
-    _check_selling_price = models.Constraint(
+    _check_selling_price_non_negative = models.Constraint(
         "CHECK(selling_price >= 0)",
         "The selling price must be positive.",
     )
@@ -163,21 +163,8 @@ class EstateProperty(models.Model):
             },
         }
 
-    def action_open_report_wizard(self):
-        self.ensure_one()
-        return {
-            "type": "ir.actions.act_window",
-            "name": self.env._("Print Estate Property Report"),
-            "res_model": "estate.property.report.wizard",
-            "view_mode": "form",
-            "target": "new",
-            "context": {
-                "default_property_id": self.id,
-            },
-        }
-
     @api.constrains("expected_price", "selling_price")
-    def _check_selling_price(self):
+    def _check_selling_price_ratio(self):
         for record in self:
             # selling_price = 0 means the property has not been sold yet.
             if float_is_zero(record.selling_price, precision_rounding=0.01):

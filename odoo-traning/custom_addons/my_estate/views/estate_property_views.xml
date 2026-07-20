@@ -73,11 +73,6 @@
                             string="Cancel Listing"
                             invisible="state in ('sold', 'cancelled')"/>
 
-                    <button name="action_open_report_wizard"
-                            type="object"
-                            string="Print Report"
-                            invisible="not id"/>
-
                     <field name="state"
                            widget="statusbar"
                            statusbar_visible="new,offer_received,offer_accepted,sold"/>
@@ -112,7 +107,6 @@
                                 <field name="garage"/>
                                 <field name="garden"/>
                                 <field name="garden_area" invisible="not garden"/>
-                                <field name="garden_orientation" invisible="not garden"/>
                                 <field name="garden_orientation" invisible="not garden"/>
                                 <field name="total_area"/>
                             </group>
