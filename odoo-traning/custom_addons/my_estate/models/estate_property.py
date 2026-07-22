@@ -1,6 +1,6 @@
 from dateutil.relativedelta import relativedelta
 
-from odoo import fields, models, api
+from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError, UserError
 from odoo.tools import float_is_zero, float_compare
 
@@ -22,6 +22,7 @@ class EstateProperty(models.Model):
     )
     name = fields.Char(string="Estate Property", required=True)
     description = fields.Text()
+    internal_note = fields.Text(string="Internal Note", copy=False)
     cancel_reason = fields.Text(copy=False)
     postcode = fields.Char()
     date_availability = fields.Date(
@@ -80,8 +81,6 @@ class EstateProperty(models.Model):
     tag_ids = fields.Many2many(
         "estate.property.tag",
         string="Tags",
-        # Mentor Q12/Q15; Mentor Q21
-        domain=[('id', 'in', [1, 2, 3])]
     )
 
     # Mentor Q23
@@ -105,6 +104,17 @@ class EstateProperty(models.Model):
         super()._compute_access_url()
         for record in self:
             record.access_url = f"/estate/property/{record.id}"
+
+    def write(self, vals):
+        result = super().write(vals)
+
+        if "internal_note" in vals:
+            for record in self:
+                record.message_post(
+                    body=_("Internal note was updated.")
+                )
+
+        return result
 
     @api.depends("living_area", "garden_area")
     def _compute_total_area(self):
@@ -132,7 +142,7 @@ class EstateProperty(models.Model):
     def action_sold(self):
         for record in self:
             if record.state == "cancelled":
-                raise UserError(self.env._("A cancelled property cannot be sold."))
+                raise UserError(_("A cancelled property cannot be sold."))
             record.state = "sold"
         return True
 
@@ -140,9 +150,9 @@ class EstateProperty(models.Model):
     def action_cancel(self):
         for record in self:
             if record.state == "sold":
-                raise UserError(self.env._("A sold property cannot be cancelled."))
+                raise UserError(_("A sold property cannot be cancelled."))
             if record.offer_ids.filtered(lambda offer: offer.status == "accepted"):
-                raise UserError(self.env._("A property with an accepted offer cannot be cancelled."))
+                raise UserError(_("A property with an accepted offer cannot be cancelled."))
             record.offer_ids.filtered(
                 lambda offer: offer.status != "refused"
             ).action_refuse()
@@ -154,7 +164,7 @@ class EstateProperty(models.Model):
         # Mentor Q13/Q18
         return {
             "type": "ir.actions.act_window",
-            "name": self.env._("Cancel Property"),
+            "name": _("Cancel Property"),
             "res_model": "estate.property.cancel.wizard",
             "view_mode": "form",
             "target": "new",
@@ -178,7 +188,7 @@ class EstateProperty(models.Model):
                     precision_rounding=0.01,
             ) < 0:
                 raise ValidationError(
-                    self.env._("The selling price cannot be lower than 90% of the expected price.")
+                    _("The selling price cannot be lower than 90% of the expected price.")
                 )
 
     def action_cancel_draft(self):
@@ -189,7 +199,7 @@ class EstateProperty(models.Model):
 
         if sold_properties:
             raise UserError(
-                self.env._("A sold property cannot be cancelled.")
+                _("A sold property cannot be cancelled.")
             )
 
         self.write({

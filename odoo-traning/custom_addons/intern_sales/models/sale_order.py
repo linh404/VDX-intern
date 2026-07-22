@@ -1,4 +1,4 @@
-from odoo import api, fields, models
+from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
 
 
@@ -62,7 +62,10 @@ class SaleOrder(models.Model):
                     "sticky": False,
                 },
             }
-        return super().action_confirm()
+        res = super().action_confirm()
+        if len(self) == 1 and self.picking_ids:
+            return self.action_view_delivery()
+        return res
 
     def action_approve_discount(self):
         self._check_discount_approver()

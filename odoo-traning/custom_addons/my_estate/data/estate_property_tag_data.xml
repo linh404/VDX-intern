@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="estate_property_tag_new" model="estate.property.tag">
+            <field name="name">New</field>
+        </record>
+
+        <record id="estate_property_tag_renovated" model="estate.property.tag">
+            <field name="name">Renovated</field>
+        </record>
+
+        <record id="estate_property_tag_furnished" model="estate.property.tag">
+            <field name="name">Furnished</field>
+        </record>
+
+        <record id="estate_property_tag_garden" model="estate.property.tag">
+            <field name="name">Garden</field>
+        </record>
+
+        <record id="estate_property_tag_garage" model="estate.property.tag">
+            <field name="name">Garage</field>
+        </record>
+
+        <record id="estate_property_tag_pool" model="estate.property.tag">
+            <field name="name">Pool</field>
+        </record>
+
+        <record id="estate_property_tag_near_school" model="estate.property.tag">
+            <field name="name">Near School</field>
+        </record>
+
+        <record id="estate_property_tag_near_metro" model="estate.property.tag">
+            <field name="name">Near Metro</field>
+        </record>
+
+        <record id="estate_property_tag_investment" model="estate.property.tag">
+            <field name="name">Investment</field>
+        </record>
+
+        <record id="estate_property_tag_hot_deal" model="estate.property.tag">
+            <field name="name">Hot Deal</field>
+        </record>
+    </data>
+</odoo>

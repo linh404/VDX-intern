@@ -1,0 +1,14 @@
+[[config]]
+name = "Odoo 19"
+
+odoo_path = "/home/linh/VDX-intern/odoo-traning/odoo-19"
+
+addons_paths = [
+    "/home/linh/VDX-intern/odoo-traning/custom_addons"
+]
+
+python_path = "/home/linh/VDX-intern/odoo-traning/.venv/bin/python"
+
+diag_missing_imports = "only_odoo"
+auto_refresh_delay = 2000
+file_cache = true

@@ -5,7 +5,7 @@
     "category": "Sales/Sales",
     "author": "Linh",
     "license": "LGPL-3",
-    "depends": ["sale"],
+    "depends": ["sale_stock"],
     "data": [
         "security/security.xml",
         "views/sale_order_views.xml",

@@ -18,7 +18,7 @@
                 <field name="tag_ids" widget="many2many_tags"/>
                 <field name="garden_area"/>
                 <field name="total_area"/>
-                <field name="best_price"/>
+                <field name="best_price" invisible="1"/>
                 <field name="state"/>
             </list>
         </field>
@@ -28,7 +28,8 @@
         <field name="name">estate.property.kanban</field>
         <field name="model">estate.property</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="property_type_id" records_draggable="0">
+            <!-- default_group_by="property_type_id" -->
+            <kanban records_draggable="0">
                 <field name="property_type_id"/>
                 <field name="state"/>
                 <templates>
@@ -82,10 +83,8 @@
                         <group>
                             <field name="name"/>
                             <field name="property_type_id"/>
-                            <!-- Mentor Q12/Q15/Q16; Mentor Q21 -->
                             <field name="tag_ids"
-                                   widget="many2many_tags"
-                                   domain="[('id', 'in', [4,5,6])]"/>
+                                   widget="many2many_tags"/>
                             <field name="postcode"/>
                             <field name="date_availability"/>
                         </group>
@@ -100,6 +99,7 @@
                         <page string="Description">
                             <group>
                                 <field name="description"/>
+                                <field name="internal_note"/>
                                 <field name="cancel_reason" readonly="1" invisible="not cancel_reason"/>
                                 <field name="bedrooms"/>
                                 <field name="living_area" string="Living Area (sqm)"/>
