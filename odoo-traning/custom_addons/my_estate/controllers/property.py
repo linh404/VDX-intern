@@ -39,6 +39,7 @@ class EstatePropertyController(http.Controller):
         if not property_record:
             raise NotFound()
 
+        # Mentor Q25/Q30
         html = request.env["ir.actions.report"]._render_qweb_html(
             REPORT_NAME,
             [property_record.id],

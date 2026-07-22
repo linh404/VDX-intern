@@ -8,7 +8,6 @@ class EstatePropertyCancelWizard(models.TransientModel):
 
     property_id = fields.Many2one(
         "estate.property",
-        string="Property",
         required=True,
     )
     reason = fields.Text(string="Cancel Reason")
@@ -17,4 +16,5 @@ class EstatePropertyCancelWizard(models.TransientModel):
         for wizard in self:
             wizard.property_id.cancel_reason = wizard.reason
             wizard.property_id.action_cancel()
+        # Mentor Q25
         return {"type": "ir.actions.act_window_close"}

@@ -1,4 +1,5 @@
 <odoo>
+    <!-- Mentor Q27 -->
     <record id="estate_property_view_list" model="ir.ui.view">
         <field name="name">estate.property.list</field>
         <field name="model">estate.property</field>
@@ -18,6 +19,7 @@
                 <field name="tag_ids" widget="many2many_tags"/>
                 <field name="garden_area"/>
                 <field name="total_area"/>
+                <!-- Mentor Q32 -->
                 <field name="best_price" invisible="1"/>
                 <field name="state"/>
             </list>
@@ -62,6 +64,7 @@
         <field name="arch" type="xml">
             <form string="Estate Property">
                 <header>
+                    <!-- Mentor Q33 -->
                     <button name="action_sold"
                             type="object"
                             string="Sold"
@@ -119,7 +122,7 @@
                         </page>
 
                         <page string="Offers">
-                            <!-- Mentor Q23 -->
+                            <!-- Mentor Q23/Q31 -->
                             <field name="offer_ids">
                                 <list editable="bottom">
                                     <field name="price"/>
@@ -129,6 +132,7 @@
                                     <field name="validity"/>
                                     <field name="date_deadline"/>
                                     <field name="status"/>
+                                    <!-- Mentor Q33 -->
                                     <button name="action_accept"
                                             type="object"
                                             icon="fa-check"
@@ -140,7 +144,7 @@
                                             title="Refuse Offer"/>
                                 </list>
                             </field>
-                            <!-- Mentor Q1/Q18 -->
+                            <!-- Mentor Q1/Q18/Q26/Q27/Q33 -->
                             <button name="%(my_estate.estate_property_offer_action)d"
                                     type="action"
                                     string="Open Offers"/>
@@ -197,7 +201,7 @@
         </field>
     </record>
 
-    <!-- Mentor Q18; Mentor Q24 -->
+    <!-- Mentor Q18/Q24/Q25 -->
     <record id="estate_property_action" model="ir.actions.act_window">
         <field name="name">My estate property</field>
         <field name="res_model">estate.property</field>
@@ -207,7 +211,7 @@
         </field>
     </record>
 
-    <!-- Mentor Q18 -->
+    <!-- Mentor Q18/Q25 -->
     <record id="estate_property_action_cancel"
             model="ir.actions.server">
         <field name="name">Cancel Properties</field>

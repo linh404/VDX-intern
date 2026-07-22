@@ -3,7 +3,7 @@
     "version": "19.0.1.0.0",
     "summary": "Test my custom module",
     "category": "Real Estate",
-    "author": "Linh",
+    "author": "Odoo Community Association (OCA), Linh",
     "license": "LGPL-3",
     "data": [
         "security/security.xml",
@@ -21,5 +21,4 @@
     ],
     "depends": ["base", "website", "mail", "portal"],
     "application": True,
-    "installable": True,
 }

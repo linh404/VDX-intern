@@ -1,4 +1,4 @@
-from odoo import api, fields, models, _
+from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
 
@@ -20,7 +20,6 @@ class SaleOrder(models.Model):
         help="Enabled when at least one order line has a discount above 10%.",
     )
     discount_approved = fields.Boolean(
-        string="Discount Approved",
         readonly=True,
         copy=False,
     )

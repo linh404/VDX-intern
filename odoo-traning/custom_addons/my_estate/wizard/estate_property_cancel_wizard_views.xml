@@ -9,6 +9,7 @@
                     <field name="reason" placeholder="Reason for cancellation"/>
                 </group>
                 <footer>
+                    <!-- Mentor Q33 -->
                     <button name="action_confirm_cancel"
                             type="object"
                             string="Confirm"

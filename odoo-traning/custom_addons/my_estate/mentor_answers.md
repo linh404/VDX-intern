@@ -628,3 +628,367 @@ Nếu muốn mở list và thấy cả record active lẫn archived, có thể t
 ```
 
 Trong module này, `estate.property` đã có field `active = fields.Boolean(default=True)`, search view có filter `Archived`, và action mở list có context `{'active_test': False}` để không tự loại record archived khỏi danh sách.
+
+## Q25. Action trong Odoo có bao nhiêu loại phổ biến?
+
+Các loại action phổ biến trong Odoo backend:
+
+| Action type | Model / type | Mục đích |
+| --- | --- | --- |
+| Window action | `ir.actions.act_window` | Mở model bằng list, form, kanban, search view. |
+| Server action | `ir.actions.server` | Chạy logic server, ví dụ gọi Python code/method trên records. |
+| Report action | `ir.actions.report` | Render report QWeb/PDF/HTML. |
+| URL action | `ir.actions.act_url` | Mở URL nội bộ hoặc bên ngoài. |
+| Client action | `ir.actions.client` | Gọi client-side action/web client component. |
+
+Ngoài ra còn có action dict đặc biệt như:
+
+```python
+{"type": "ir.actions.act_window_close"}
+```
+
+Nó thường dùng để đóng wizard/popup.
+
+Áp dụng trong source code:
+
+- Có áp dụng `ir.actions.act_window`: `views/estate_property_views.xml`, `views/estate_property_offer_views.xml`, `views/estate_property_tag_views.xml`, `views/estate_property_type_views.xml`.
+- Có áp dụng action dict `ir.actions.act_window`: method `action_open_cancel_wizard()` trong `models/estate_property.py`.
+- Có áp dụng `ir.actions.server`: record `estate_property_action_cancel` trong `views/estate_property_views.xml`.
+- Có áp dụng `ir.actions.report`: record `action_report_estate_property` trong `report/estate_property_report.xml`.
+- Có áp dụng `ir.actions.act_window_close`: wizard `estate_property_cancel_wizard.py`.
+- Chưa thấy ví dụ `ir.actions.act_url` và `ir.actions.client` trong module `my_estate`.
+
+## Q26. `button type="action"` hoạt động như thế nào?
+
+`button type="action"` không gọi Python method trực tiếp. Nó yêu cầu web client load và chạy một action đã được khai báo sẵn.
+
+Ví dụ trong form property:
+
+```xml
+<button name="%(my_estate.estate_property_offer_action)d"
+        type="action"
+        string="Open Offers"/>
+```
+
+Ở đây `name` dùng cú pháp:
+
+```xml
+%(module.external_id)d
+```
+
+Odoo sẽ resolve XML id `my_estate.estate_property_offer_action` thành database id thật của action rồi truyền cho web client.
+
+Nếu chỉ ghi tên method Python thì phải dùng `type="object"`, không phải `type="action"`.
+
+Với report, có thể tạo button `type="action"` trỏ tới một `ir.actions.report`. Khi bấm, Odoo chạy report action đó. Tuy nhiên trong module này chưa có backend button report dạng:
+
+```xml
+<button name="%(my_estate.action_report_estate_property)d"
+        type="action"
+        string="Print"/>
+```
+
+Module hiện tại expose report qua binding Print menu, không qua button form. Nút `Report` trong `estate_website_templates.xml` là HTML button submit của website route, không phải Odoo backend button `type="action"`.
+
+Áp dụng trong source code:
+
+- Có áp dụng `button type="action"`: button `Open Offers` trong `views/estate_property_views.xml`.
+- Có report action liên quan: `report/estate_property_report.xml`.
+- Chưa có backend button `type="action"` gọi trực tiếp report action.
+
+## Q27. ID trong Odoo có mấy loại, tại sao cần external ID?
+
+Trong thực tế hay gặp 2 loại ID chính:
+
+| Loại ID | Ví dụ | Ý nghĩa |
+| --- | --- | --- |
+| Database ID | `42` | Primary key số nguyên trong bảng database. Có thể khác nhau giữa các database. |
+| External ID / XML ID | `my_estate.estate_property_action` | ID ổn định ở tầng module/data, được lưu trong `ir.model.data`. |
+
+Trong XML, khi khai báo:
+
+```xml
+<record id="estate_property_action" model="ir.actions.act_window">
+```
+
+thì external id đầy đủ là:
+
+```text
+my_estate.estate_property_action
+```
+
+Cần external ID vì:
+
+- Tham chiếu record giữa các file XML/CSV.
+- Tham chiếu record từ module khác bằng `module.external_id`.
+- Giúp Odoo update đúng record khi upgrade module, thay vì tạo record trùng.
+- Database ID không ổn định giữa local, staging, production.
+
+Ví dụ:
+
+```xml
+<field name="binding_model_id" ref="model_estate_property"/>
+```
+
+`ref` dùng external id để tìm đúng record. Nếu record ở module khác thì phải ghi đầy đủ:
+
+```xml
+ref="base.group_user"
+```
+
+Áp dụng trong source code:
+
+- Có áp dụng `<record id="...">` trong data, security, views, report.
+- Có áp dụng `<menuitem id="...">` trong `views/estate_menus.xml` và các menu view khác.
+- Có áp dụng `ref="..."` trong security/view/report XML.
+- Có áp dụng cú pháp `%(my_estate.estate_property_offer_action)d` ở button `type="action"`.
+
+## Q28. Attribute `related` của field dùng để làm gì?
+
+`related` dùng để tạo field lấy giá trị thông qua một chain field khác.
+
+Ví dụ:
+
+```python
+property_type_name = fields.Char(
+    related="property_type_id.name",
+    store=True,
+)
+```
+
+Field này không tự tính bằng method riêng. Nó đọc giá trị từ:
+
+```text
+record.property_type_id.name
+```
+
+Khác với computed field thông thường:
+
+| Phần | `related` | computed field |
+| --- | --- | --- |
+| Cách tính | Đi theo field chain có sẵn | Tự viết method compute |
+| Logic phức tạp | Không phù hợp | Phù hợp |
+| Ví dụ | Lấy tên type, country của partner | Tính tổng diện tích, best price |
+| `store=True` | Có thể dùng | Có thể dùng |
+
+`related` phù hợp khi chỉ muốn expose lại một field từ record liên quan. Nếu logic có điều kiện, tổng hợp nhiều record, hoặc cần xử lý đặc biệt thì dùng computed field.
+
+Áp dụng trong source code:
+
+- Chưa áp dụng. Rà trong `my_estate` chưa thấy field nào khai báo `related="..."`.
+- Module đang có computed field thật là `total_area` và `best_price` trong `models/estate_property.py`.
+
+## Q29. Field `Many2oneReference` và `Reference` khác nhau như thế nào?
+
+`Reference` và `Many2oneReference` là pseudo-relational field. Chúng dùng cho quan hệ đa hình, tức một field có thể trỏ tới record thuộc nhiều model khác nhau.
+
+`fields.Reference` lưu cả model và id trong cùng một giá trị dạng:
+
+```text
+model_name,record_id
+```
+
+Ví dụ ý tưởng:
+
+```python
+target_ref = fields.Reference(
+    selection=[
+        ("estate.property", "Property"),
+        ("estate.property.offer", "Offer"),
+    ],
+)
+```
+
+`fields.Many2oneReference` lưu record id như một integer field, còn tên model nằm ở một field khác được chỉ định bằng `model_field`.
+
+Ví dụ ý tưởng:
+
+```python
+target_model = fields.Char()
+target_id = fields.Many2oneReference(model_field="target_model")
+```
+
+Khác nhau:
+
+| Field | Cách lưu model | Cách lưu id |
+| --- | --- | --- |
+| `Reference` | Trong chính giá trị reference | Trong chính giá trị reference |
+| `Many2oneReference` | Trong field khác, ví dụ `target_model` | Trong field hiện tại |
+
+Cả hai đều không mạnh như `Many2one` bình thường ở tầng database vì không có foreign key thật tới một bảng cố định. Vì vậy nên tránh dùng nếu quan hệ có thể biểu diễn bằng `Many2one`, `One2many`, hoặc `Many2many` rõ ràng.
+
+Áp dụng trong source code:
+
+- Chưa áp dụng thật. `models/estate_property.py` chỉ có comment placeholder:
+
+```python
+# test = fields.Many2oneReference(model_field=)
+```
+
+- Chưa thấy field `fields.Reference(...)` hoặc `fields.Many2oneReference(...)` được khai báo thật trong module.
+
+## Q30. Report action tự thêm nút/menu Print khi chọn nhiều record như thế nào?
+
+Report action được khai báo bằng `ir.actions.report`.
+
+Trong module này:
+
+```xml
+<record id="action_report_estate_property" model="ir.actions.report">
+    <field name="name">Report Estate Property</field>
+    <field name="model">estate.property</field>
+    <field name="report_type">qweb-html</field>
+    <field name="report_name">my_estate.report_estate_property</field>
+    <field name="report_file">my_estate.report_estate_property</field>
+    <field name="print_report_name">'Estate Property - %s' % (object.name)</field>
+    <field name="binding_model_id" ref="model_estate_property"/>
+    <field name="binding_type">report</field>
+</record>
+```
+
+Hai field quan trọng:
+
+- `binding_model_id`: bind report vào model `estate.property`.
+- `binding_type="report"`: báo cho Odoo đây là report action của model đó.
+
+Khi report được bind như vậy, Odoo tự đưa report vào menu/nút Print của model tương ứng. Ở list view, khi user chọn một hoặc nhiều property, web client có thể gọi report action với các record được chọn.
+
+Template report cũng đang support nhiều record vì dùng:
+
+```xml
+<t t-foreach="docs" t-as="doc">
+    <t t-call="my_estate.report_estate_property_document"/>
+</t>
+```
+
+Tức là nếu chọn nhiều property, report render lặp qua nhiều `doc`.
+
+Áp dụng trong source code:
+
+- Có áp dụng trong `report/estate_property_report.xml`.
+- Có `binding_model_id` và `binding_type="report"`.
+- Có `t-foreach="docs"` nên report phù hợp với behavior in nhiều record.
+
+## Q31. `editable` của relational list view có option gì?
+
+Trong list view, `editable` thường có 2 giá trị:
+
+| Giá trị | Ý nghĩa |
+| --- | --- |
+| `editable="top"` | Dòng tạo mới/inline edit nằm phía trên list. |
+| `editable="bottom"` | Dòng tạo mới/inline edit nằm phía dưới list. |
+
+Trong module này, tab Offers dùng relational list view:
+
+```xml
+<field name="offer_ids">
+    <list editable="bottom">
+        <field name="price"/>
+        <field name="partner_id"/>
+        ...
+    </list>
+</field>
+```
+
+Vì `offer_ids` là `One2many`, khi tạo offer mới inline trong list này, Odoo biết inverse field là `property_id` nên tự liên kết offer mới với property cha.
+
+Nếu bỏ `editable` khỏi list:
+
+- List không còn inline-edit trực tiếp theo dòng.
+- User thường phải mở form/dialog của record con để tạo hoặc sửa.
+- UI sẽ nặng hơn nhưng phù hợp hơn nếu record con có nhiều field, nhiều logic onchange, hoặc cần layout form rõ ràng.
+
+Áp dụng trong source code:
+
+- Có áp dụng `editable="bottom"` trong relational list `offer_ids` tại `views/estate_property_views.xml`.
+- Chưa thấy ví dụ `editable="top"` trong module `my_estate`.
+
+## Q32. Ẩn cột list view bằng `invisible` được không?
+
+Không nên dùng `invisible` nếu mục tiêu là ẩn cả cột list view.
+
+Trong list view Odoo, có 2 khái niệm cần tách:
+
+| Attribute | Tác dụng chính trong list view |
+| --- | --- |
+| `invisible` | Ẩn nội dung cell theo từng record. Cột vẫn có thể còn header/space. |
+| `column_invisible` | Ẩn cả column khỏi list. |
+
+Ví dụ hiện tại:
+
+```xml
+<field name="best_price" invisible="1"/>
+```
+
+Với list view, `invisible="1"` làm cell của field này bị ẩn/rỗng. Nhưng vì column không bị loại khỏi danh sách active columns, UI có thể vẫn còn một cột trống.
+
+Nếu mục tiêu là ẩn hẳn cột, nên dùng:
+
+```xml
+<field name="best_price" column_invisible="1"/>
+```
+
+`invisible` vẫn hữu ích khi cần field có mặt trong view để phục vụ modifier/domain/onchange logic, nhưng không muốn hiển thị giá trị ở từng cell.
+
+Áp dụng trong source code:
+
+- Có áp dụng `invisible="1"` trên field `best_price` trong list view `views/estate_property_views.xml`.
+- Chưa thấy `column_invisible` trong module `my_estate`.
+- Rà source Odoo local `odoo-19`: list renderer lọc active columns bằng `column_invisible`; còn `invisible` được evaluate khi render từng cell.
+
+## Q33. Button type trong Odoo view có bao nhiêu loại phổ biến?
+
+Trong Odoo backend XML view, `button` thường dùng 2 loại `type` chính:
+
+| Button type | Ý nghĩa |
+| --- | --- |
+| `type="object"` | Gọi Python method trên model/recordset hiện tại. |
+| `type="action"` | Chạy một Odoo action đã khai báo sẵn. |
+
+Ví dụ `type="object"`:
+
+```xml
+<button name="action_sold"
+        type="object"
+        string="Sold"/>
+```
+
+Khi bấm, Odoo gọi method Python:
+
+```python
+def action_sold(self):
+    ...
+```
+
+Ví dụ `type="action"`:
+
+```xml
+<button name="%(my_estate.estate_property_offer_action)d"
+        type="action"
+        string="Open Offers"/>
+```
+
+Khi bấm, Odoo mở action `estate_property_offer_action`.
+
+Trong wizard còn có:
+
+```xml
+<button string="Discard" special="cancel"/>
+```
+
+`special="cancel"` không phải là `type`. Nó là behavior đặc biệt của form/wizard để đóng popup hoặc hủy thao tác.
+
+Lưu ý: button trong website template như:
+
+```xml
+<button type="submit">Report</button>
+```
+
+là HTML button, không phải Odoo backend view button `type="object"`/`type="action"`.
+
+Áp dụng trong source code:
+
+- Có áp dụng `type="object"` ở các button `action_sold`, `action_open_cancel_wizard`, `action_accept`, `action_refuse`, và wizard `action_confirm_cancel`.
+- Có áp dụng `type="action"` ở button `Open Offers`.
+- Có áp dụng `special="cancel"` ở wizard cancel button.
+- Có HTML button `type="submit"` trong website template, nhưng nó thuộc HTML form behavior, không phải Odoo backend button action behavior.

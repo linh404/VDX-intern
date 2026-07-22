@@ -26,6 +26,15 @@
 22. Computed field `store=True` và `store=False` check quyền như thế nào? Liên quan gì đến `compute_sudo`?
 23. Relational view: `Many2one` và `One2many` có phải luôn là một cặp không? Vì sao tạo record từ `One2many` tự liên kết record cha, còn `Many2many` thì không tự điền inverse giống vậy?
 24. Action archive trong Odoo hoạt động như thế nào? Field `active` và context `active_test` liên quan gì đến việc ẩn/hiện record archived?
+25. Action trong Odoo có bao nhiêu loại phổ biến? Khi nào dùng `ir.actions.act_window`, `ir.actions.server`, `ir.actions.report`, `ir.actions.act_url`, `ir.actions.client`?
+26. `button type="action"` hoạt động như thế nào? Khi nào `name` cần dùng cú pháp `%(module.external_id)d`, và liên hệ với report action ra sao?
+27. ID trong Odoo có mấy loại? Khác nhau giữa database id, external id/XML id và vì sao cần external id?
+28. Attribute `related` của field dùng để làm gì? Khác gì với computed field thông thường?
+29. Field `Many2oneReference` và `Reference` khác nhau như thế nào? Khi nào nên dùng, khi nào nên tránh?
+30. Report action có behavior gì khi `binding_model_id` và `binding_type="report"`? Vì sao Odoo tự thêm nút/menu Print khi chọn một hoặc nhiều record trong list view?
+31. `editable` của relational list view có option gì? `editable="top"` và `editable="bottom"` khác nhau thế nào, và nếu bỏ `editable` thì thao tác tạo/sửa record con thay đổi ra sao?
+32. Có nên ẩn cột list view bằng `invisible` không? Khi dùng `invisible` trên field trong list view thì chuyện gì xảy ra, khác gì với `column_invisible`?
+33. Button trong Odoo view có bao nhiêu loại `type` phổ biến? Khác nhau giữa `type="object"` và `type="action"` là gì?
 
 ## Kết quả đối chiếu code
 
@@ -55,3 +64,12 @@
 | Q22 | Có áp dụng | `best_price` là computed field `store=True, compute_sudo=True`; `total_area` là computed field non-stored. |
 | Q23 | Có áp dụng | `offer_ids` là `One2many` qua inverse `property_id`; `property_id` là `Many2one`; `tag_ids` là `Many2many` dùng bảng trung gian. |
 | Q24 | Có áp dụng | `models/estate_property.py` có field `active`; `views/estate_property_views.xml` có filter Archived và action context `{'active_test': False}`. |
+| Q25 | Có áp dụng | `views/estate_property_views.xml` có `ir.actions.act_window` và `ir.actions.server`; `models/estate_property.py` trả về action dict `ir.actions.act_window`; `report/estate_property_report.xml` có `ir.actions.report`. Chưa có ví dụ `act_url` và `act_client`. |
+| Q26 | Có áp dụng | `views/estate_property_views.xml` có button `Open Offers` dùng `type="action"` với `name="%(my_estate.estate_property_offer_action)d"`; `report/estate_property_report.xml` có report action `action_report_estate_property`. |
+| Q27 | Có áp dụng | Các XML file dùng nhiều external id qua `<record id="...">`, `<menuitem id="...">`, `ref="..."`, và cú pháp `%(my_estate.estate_property_offer_action)d`; database id là id số runtime của record. |
+| Q28 | Chưa áp dụng | Chưa có field nào khai báo `related="..."` trong module; nếu cần minh họa có thể thêm field related đọc từ `property_type_id` hoặc partner/user. |
+| Q29 | Chưa áp dụng | `models/estate_property.py` chỉ có comment placeholder `Many2oneReference`; chưa có field `fields.Reference` hoặc `fields.Many2oneReference` thật để minh họa. |
+| Q30 | Có áp dụng | `report/estate_property_report.xml` khai báo `binding_model_id` trỏ tới `model_estate_property` và `binding_type` là `report`, nên report được bind vào model và xuất hiện trong menu/nút Print cho record được chọn. |
+| Q31 | Có áp dụng | `views/estate_property_views.xml` có relational list của `offer_ids` dùng `<list editable="bottom">`; nếu bỏ `editable`, list không inline-edit trực tiếp theo dòng như hiện tại mà chuyển sang mở form/dialog record con tùy view. |
+| Q32 | Có áp dụng | `views/estate_property_views.xml` có `<field name="best_price" invisible="1"/>` trong list view; đây là điểm để hỏi sự khác nhau giữa ẩn field/cell bằng `invisible` và ẩn cả cột bằng `column_invisible`. |
+| Q33 | Có áp dụng | `views/estate_property_views.xml` có button `type="object"` cho method Python và button `type="action"` để mở action; wizard view cũng có `type="object"` và `special="cancel"`. |

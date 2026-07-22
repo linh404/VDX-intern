@@ -1,5 +1,5 @@
 from datetime import timedelta
-from odoo import _, api, fields, models
+from odoo import api, fields, models
 from odoo.exceptions import UserError
 
 
@@ -22,7 +22,7 @@ class EstatePropertyOffer(models.Model):
         default="pending"
     )
 
-    partner_id = fields.Many2one("res.partner", required=True, string="Partner")
+    partner_id = fields.Many2one("res.partner", required=True)
     # Mentor Q5/Q17; Mentor Q23
     property_id = fields.Many2one("estate.property", required=True, ondelete="cascade")
 
@@ -61,13 +61,15 @@ class EstatePropertyOffer(models.Model):
     def action_accept(self):
         for record in self:
             if record.property_id.state in ("sold", "cancelled"):
-                raise UserError(_("You cannot accept an offer for a sold or cancelled property."))
+                raise UserError(
+                    self.env._("You cannot accept an offer for a sold or cancelled property.")
+                )
             accepted_offer = record.property_id.offer_ids.filtered(
                 lambda offer: offer.status == "accepted" and offer != record
             )
 
             if accepted_offer:
-                raise UserError(_("Only one offer can be accepted for a property."))
+                raise UserError(self.env._("Only one offer can be accepted for a property."))
             other_offers = record.property_id.offer_ids - record
             other_offers.filtered(lambda offer: offer.status != "refused").action_refuse()
             record.status = "accepted"
@@ -79,7 +81,9 @@ class EstatePropertyOffer(models.Model):
     def action_refuse(self):
         for record in self:
             if record.property_id.state in ("sold", "cancelled"):
-                raise UserError(_("You cannot refuse an offer for a sold or canceled property."))
+                raise UserError(
+                    self.env._("You cannot refuse an offer for a sold or canceled property.")
+                )
             record.status = "refused"
         return True
 

@@ -1,6 +1,6 @@
 from dateutil.relativedelta import relativedelta
 
-from odoo import _, api, fields, models
+from odoo import api, fields, models
 from odoo.exceptions import ValidationError, UserError
 from odoo.tools import float_is_zero, float_compare
 
@@ -22,9 +22,10 @@ class EstateProperty(models.Model):
     )
     name = fields.Char(string="Estate Property", required=True)
     description = fields.Text()
-    internal_note = fields.Text(string="Internal Note", copy=False)
+    internal_note = fields.Text(copy=False)
     cancel_reason = fields.Text(copy=False)
     postcode = fields.Char()
+    # Mentor Q29
     date_availability = fields.Date(
         copy=False,
         default=lambda self: fields.Date.today() + relativedelta(months=3),
@@ -67,27 +68,25 @@ class EstateProperty(models.Model):
         tracking=True,
     )
 
+    # Mentor Q28
     # Mentor Q5/Q17
-    property_type_id = fields.Many2one("estate.property.type", string="Property Type")
+    property_type_id = fields.Many2one("estate.property.type")
 
-    buyer_id = fields.Many2one("res.partner", string="Buyer", copy=False, tracking=True)
+    buyer_id = fields.Many2one("res.partner", copy=False, tracking=True)
     salesperson_id = fields.Many2one(
         "res.users",
-        string="Salesperson",
         default=lambda self: self.env.user,
         tracking=True,
     )
 
     tag_ids = fields.Many2many(
         "estate.property.tag",
-        string="Tags",
     )
 
     # Mentor Q23
     offer_ids = fields.One2many(
         "estate.property.offer",
         "property_id",
-        string="Offers",
     )
 
     # Computed, Onchange
@@ -101,9 +100,10 @@ class EstateProperty(models.Model):
     )
 
     def _compute_access_url(self):
-        super()._compute_access_url()
+        result = super()._compute_access_url()
         for record in self:
             record.access_url = f"/estate/property/{record.id}"
+        return result
 
     def write(self, vals):
         result = super().write(vals)
@@ -111,7 +111,7 @@ class EstateProperty(models.Model):
         if "internal_note" in vals:
             for record in self:
                 record.message_post(
-                    body=_("Internal note was updated.")
+                    body=self.env._("Internal note was updated.")
                 )
 
         return result
@@ -138,21 +138,21 @@ class EstateProperty(models.Model):
             self.garden_area = 0
             self.garden_orientation = False
 
-    # action sold
+    # Mentor Q33
     def action_sold(self):
         for record in self:
             if record.state == "cancelled":
-                raise UserError(_("A cancelled property cannot be sold."))
+                raise UserError(self.env._("A cancelled property cannot be sold."))
             record.state = "sold"
         return True
 
-    # action cancel
+    # Mentor Q33
     def action_cancel(self):
         for record in self:
             if record.state == "sold":
-                raise UserError(_("A sold property cannot be cancelled."))
+                raise UserError(self.env._("A sold property cannot be cancelled."))
             if record.offer_ids.filtered(lambda offer: offer.status == "accepted"):
-                raise UserError(_("A property with an accepted offer cannot be cancelled."))
+                raise UserError(self.env._("A property with an accepted offer cannot be cancelled."))
             record.offer_ids.filtered(
                 lambda offer: offer.status != "refused"
             ).action_refuse()
@@ -161,10 +161,10 @@ class EstateProperty(models.Model):
 
     def action_open_cancel_wizard(self):
         self.ensure_one()
-        # Mentor Q13/Q18
+        # Mentor Q13/Q18/Q25/Q33
         return {
             "type": "ir.actions.act_window",
-            "name": _("Cancel Property"),
+            "name": self.env._("Cancel Property"),
             "res_model": "estate.property.cancel.wizard",
             "view_mode": "form",
             "target": "new",
@@ -188,10 +188,11 @@ class EstateProperty(models.Model):
                     precision_rounding=0.01,
             ) < 0:
                 raise ValidationError(
-                    _("The selling price cannot be lower than 90% of the expected price.")
+                    self.env._("The selling price cannot be lower than 90% of the expected price.")
                 )
 
     def action_cancel_draft(self):
+        # Mentor Q25
         sold_properties = self.filtered(
             lambda property_record:
             property_record.state == "sold"
@@ -199,7 +200,7 @@ class EstateProperty(models.Model):
 
         if sold_properties:
             raise UserError(
-                _("A sold property cannot be cancelled.")
+                self.env._("A sold property cannot be cancelled.")
             )
 
         self.write({
