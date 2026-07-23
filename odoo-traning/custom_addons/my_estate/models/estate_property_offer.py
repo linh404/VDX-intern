@@ -31,6 +31,7 @@ class EstatePropertyOffer(models.Model):
         compute="_compute_date_deadline",
         inverse="_inverse_date_deadline",
         string="Deadline",
+        store=True,
     )
 
     # Inverse
@@ -46,6 +47,17 @@ class EstatePropertyOffer(models.Model):
             create_date = fields.Date.to_date(record.create_date) or fields.Date.context_today(record)
             if record.date_deadline:
                 record.validity = (record.date_deadline - create_date).days
+
+    @api.model
+    def _cron_refuse_expired_offers(self):
+        today = fields.Date.context_today(self)
+        expired_offers = self.search([
+            ("status", "=", "pending"),
+            ("date_deadline", "<", today),
+            ("property_id.state", "not in", ("sold", "cancelled")),
+        ])
+        expired_offers.action_refuse()
+        return len(expired_offers)
 
     # override method
     @api.model_create_multi

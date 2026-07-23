@@ -95,8 +95,7 @@ class EstateProperty(models.Model):
     # Mentor Q7/Q10/Q11; Mentor Q22
     best_price = fields.Float(
         compute="_compute_best_price",
-        store=True,
-        compute_sudo=True,
+        store=True
     )
 
     def _compute_access_url(self):
@@ -206,3 +205,4 @@ class EstateProperty(models.Model):
         self.write({
             "state": "cancelled",
         })
+

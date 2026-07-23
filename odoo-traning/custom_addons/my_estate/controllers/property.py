@@ -6,6 +6,7 @@ from werkzeug.exceptions import NotFound
 REPORT_NAME = "my_estate.report_estate_property"
 LIST_PROPERTY_NAME = "my_estate.estate_property_list"
 
+
 class EstatePropertyController(http.Controller):
     # List property
     @http.route(
@@ -46,12 +47,14 @@ class EstatePropertyController(http.Controller):
         )[0]
         return request.make_response(html)
 
-    # JSONRPC
+    # JSON-2 + Bearer API key
     @http.route(
         "/my_estate/properties",
-        type="jsonrpc",
-        auth="user",
+        type="json2",
+        auth="bearer",
+        readonly=True,
         methods=["POST"],
+        save_session=False,
     )
     def properties(self, state=None):
         domain = []
@@ -60,7 +63,6 @@ class EstatePropertyController(http.Controller):
 
         properties = request.env["estate.property"].search(domain, limit=20)
         return {
-            "count": len(properties),
             "properties": [
                 {
                     "id": property_record.id,

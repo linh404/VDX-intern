@@ -10,6 +10,7 @@
         "security/ir.model.access.csv",
         "data/estate_property_type_data.xml",
         "data/estate_property_tag_data.xml",
+        "data/estate_property_cron.xml",
         "report/estate_property_report.xml",
         "views/estate_menus.xml",
         "wizard/estate_property_cancel_wizard_views.xml",
