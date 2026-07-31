@@ -1,0 +1,14 @@
+repos:
+  - repo: https://github.com/OCA/pylint-odoo
+    rev: v10.0.8
+    hooks:
+      - id: pylint_odoo
+        name: pylint-odoo Odoo 19
+
+        args:
+          - --load-plugins=pylint_odoo
+          - --valid-odoo-versions=19.0
+          - --disable=all
+          - --enable=odoolint
+
+        files: ^odoo-traning/custom_addons/.*\.py$

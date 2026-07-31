@@ -144,10 +144,17 @@ cython_debug/
 # VS Code IDE
 .vscode/
 
+# Odoo training workspace folders
+/odoo-traning/odoo-18/
+/odoo-traning/odoo-19/
+
 # Custom ignores
 /Odoo/
 /odoo-18/
 /odoo-19/
 /first-month.md
 /odoo-training.md
+
+# Ignore agent/skill files (e.g., local .agents/ skills for Odoo)
+.agents/
 

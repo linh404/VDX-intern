@@ -1,5 +1,5 @@
 [[config]]
-name = "Odoo 19"
+name = "default"
 
 odoo_path = "/home/linh/VDX-intern/odoo-traning/odoo-19"
 

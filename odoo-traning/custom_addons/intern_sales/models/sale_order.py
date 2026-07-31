@@ -137,3 +137,5 @@ class SaleOrderLine(models.Model):
 
     def _reset_order_discount_approval(self):
         self.order_id._reset_discount_approval()
+
+

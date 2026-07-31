@@ -1,5 +1,5 @@
 {
-    "name": "My Estate",
+    "name": "Real Estate",
     "version": "19.0.1.0.0",
     "summary": "Test my custom module",
     "category": "Real Estate",

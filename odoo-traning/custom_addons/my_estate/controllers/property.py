@@ -47,6 +47,48 @@ class EstatePropertyController(http.Controller):
         )[0]
         return request.make_response(html)
 
+    # HTTP return type examples
+    @http.route(
+        "/estate/http-return/<string:return_type>",
+        type="http",
+        auth="user",
+        website=True,
+        readonly=True,
+        methods=["GET"],
+    )
+    def http_return_example(self, return_type):
+        if return_type == "string":
+            return """
+                <h1>HTTP string return</h1>
+                <p>This response is returned directly as a string.</p>
+            """
+
+        if return_type == "render":
+            properties = request.env["estate.property"].search([], limit=20)
+            return request.render(
+                LIST_PROPERTY_NAME,
+                {
+                    "properties": properties,
+                },
+            )
+
+        if return_type == "response":
+            return request.make_response(
+                """
+                    <h1>HTTP response return</h1>
+                    <p>This response is built with request.make_response().</p>
+                """,
+                headers=[
+                    ("Content-Type", "text/html; charset=utf-8"),
+                    ("X-Estate-Return-Type", "response"),
+                ],
+            )
+
+        if return_type == "redirect":
+            return request.redirect("/estate/properties")
+
+        raise NotFound()
+
     # JSON-2 + Bearer API key
     @http.route(
         "/my_estate/properties",

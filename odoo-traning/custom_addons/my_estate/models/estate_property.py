@@ -23,6 +23,10 @@ class EstateProperty(models.Model):
     name = fields.Char(string="Estate Property", required=True)
     description = fields.Text()
     internal_note = fields.Text(copy=False)
+    manager_note = fields.Text(
+        copy=False,
+        groups="my_estate.group_estate_manager",
+    )
     cancel_reason = fields.Text(copy=False)
     postcode = fields.Char()
     # Mentor Q29
@@ -68,9 +72,14 @@ class EstateProperty(models.Model):
         tracking=True,
     )
 
-    # Mentor Q28
     # Mentor Q5/Q17
     property_type_id = fields.Many2one("estate.property.type")
+    # Mentor Q28
+
+    property_type_name = fields.Char(
+        related="property_type_id.name",
+        store=True,
+    )
 
     buyer_id = fields.Many2one("res.partner", copy=False, tracking=True)
     salesperson_id = fields.Many2one(
@@ -205,4 +214,3 @@ class EstateProperty(models.Model):
         self.write({
             "state": "cancelled",
         })
-
