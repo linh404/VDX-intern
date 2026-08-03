@@ -329,14 +329,6 @@ Sau khi người dùng dịch trên giao diện Weblate, thay đổi được gh
 
 Để các file PO tự động được cập nhật khi POT thay đổi, component phải cài add-on **Update PO files to match POT (msgmerge)** với trigger cập nhật repository. Chỉ cấu hình **Template for new translations** và **File mask** không tự động chạy `msgmerge` cho toàn bộ file PO.
 
-### 6.4. Tổng hợp trách nhiệm
-
-| Hệ thống | File `.pot` | File `.po` |
-| -------- | ----------- | ---------- |
-| Odoo | Sinh danh sách chuỗi cần dịch của module | Nạp và sử dụng bản dịch của từng ngôn ngữ |
-| GitLab CI | Export, validate, phát hiện và cập nhật template | Chỉ validate kỹ thuật, không ghi đè nội dung dịch |
-| Weblate | Đọc làm template để đồng bộ catalog | Quản lý, chỉnh sửa và đưa bản dịch về repository |
-
 ---
 
 ## 7. Luồng cập nhật POT
@@ -486,78 +478,66 @@ Trong cấu hình này:
 * `ja.po` chứa bản dịch tiếng Nhật.
 * Các file PO cùng thuộc một component và được cập nhật theo cùng file POT.
 
-### 8.1. Cơ chế mapping giữa POT và PO
+### 8.1. Cơ chế mapping giữa POT và PO trong Odoo
 
-POT và PO đều được tổ chức thành các **Gettext entry**.
+Trong repo Odoo, quan hệ giữa POT và PO được xác định từ **phạm vi module/component** và **nội dung entry nguồn**. Weblate không mapping theo vị trí dòng, comment hoặc nội dung bản dịch.
 
-Ví dụ entry trong POT:
+#### Cấp module/component
 
-```po
-#. module: g10_access_management
-#: model:ir.model.fields,field_description:...
-msgid "Access Groups"
-msgstr ""
+Mỗi module Odoo được cấu hình thành một Weblate component riêng. Hai cấu hình sau liên kết template POT với các file PO của cùng module:
+
+* **Template for new translations** trỏ tới file POT của module.
+* **File mask** trỏ tới các file PO theo ngôn ngữ trong thư mục `i18n/` của module.
+
+Ví dụ:
+
+```text
+Component: g10_access_management
+POT: g10_access_management/i18n/g10_access_management.pot
+PO:  g10_access_management/i18n/vi.po
 ```
 
-Entry tương ứng trong `vi.po`:
+Do đó, entry trong `g10_access_management.pot` chỉ được đối chiếu với các entry trong những file PO thuộc component `g10_access_management`. Cùng một chuỗi xuất hiện ở module khác được xử lý trong component/catalog khác.
+
+#### Cấp Gettext entry trong catalog Odoo
+
+Trong phần lớn file POT/PO do Odoo export, entry không có `msgctxt`. Khi đó, trong cùng một component/catalog, `msgid` là giá trị chính để đối chiếu entry giữa POT và PO.
 
 ```po
-#. module: g10_access_management
-#: model:ir.model.fields,field_description:...
+# POT
+msgid "Access Groups"
+msgstr ""
+
+# vi.po
 msgid "Access Groups"
 msgstr "Nhóm truy cập"
 ```
 
-Việc mapping giữa entry trong POT và PO được xác định chủ yếu theo:
+Tuy nhiên, Odoo có thể export `msgctxt` khi cần phân biệt các entry có cùng tuyệt đối một `msgid` nhưng được sử dụng trong những context khác nhau. Khi entry có `msgctxt`, cặp `msgctxt + msgid` được dùng để phân biệt entry; không được chỉ dùng `msgid` trong trường hợp này.
 
-```text
-msgctxt + msgid
-```
-
-| Thành phần | Vai trò |
-| ---------- | ------- |
-| `msgctxt` | Phân biệt các chuỗi có cùng nội dung nhưng có ngữ cảnh dịch khác nhau. |
-| `msgid` | Nội dung chuỗi nguồn. |
-| `msgstr` | Nội dung bản dịch trong file PO. |
-
-Các file PO do Odoo export thường không sử dụng `msgctxt`. Vì vậy, trong phạm vi một component, `msgid` là giá trị chính để xác định entry tương ứng giữa POT và PO.
-
-Các thành phần sau không phải khóa mapping:
+Ví dụ minh họa cơ chế:
 
 ```po
-#. module: g10_access_management
-#: model:ir.model.fields,field_description:...
+msgctxt "context A"
+msgid "Button"
+msgstr ""
+
+msgctxt "context B"
+msgid "Button"
+msgstr ""
 ```
 
-Chúng được sử dụng làm metadata và source reference:
+| Thành phần trong entry Odoo | Vai trò |
+| --------------------------- | ------- |
+| `msgid` | Chuỗi nguồn; là giá trị chính để đối chiếu khi entry không có `msgctxt`, và là một phần của khóa đối chiếu khi `msgctxt` có mặt. Trên Weblate, giá trị này được hiển thị là **Source string**. |
+| `msgctxt` nếu Odoo export | Context dùng để phân biệt các entry có cùng `msgid`; chỉ được sử dụng khi trường này thực sự xuất hiện trong POT/PO. |
+| `msgstr` | Bản dịch của `msgid` trong file PO. Trên Weblate, giá trị này được hiển thị là **Translation**; nó không phải khóa mapping. |
+| `#. module: ...` | Comment do Odoo sinh ra để cho biết module/phạm vi nghiệp vụ; chỉ cung cấp context, không phải khóa mapping. |
+| `#: ...` | Source reference/location do Odoo export; cho biết nơi chuỗi được sử dụng, không phải khóa mapping. |
 
-| Thành phần | Ý nghĩa |
-| ---------- | ------- |
-| `#. module: ...` | Comment do Odoo sinh ra, cho biết module liên quan. |
-| `#: ...` | Vị trí hoặc đối tượng sử dụng chuỗi trong source code và dữ liệu Odoo. |
+Nếu cùng một `msgid` được sử dụng ở nhiều vị trí trong cùng module mà không có context riêng, file PO có thể giữ một entry với nhiều source reference và một bản dịch dùng chung. Nếu Odoo export các context khác nhau cho cùng `msgid`, mỗi cặp `msgctxt + msgid` được quản lý như một entry riêng. Nếu cùng `msgid` xuất hiện ở hai module khác nhau, hai entry vẫn độc lập vì thuộc hai component/catalog khác nhau.
 
-Nếu cùng một `msgid` xuất hiện tại nhiều vị trí trong cùng catalog, Gettext có thể biểu diễn chúng thành một entry với nhiều source reference:
-
-```po
-#: models/access_group.py:20
-#: views/access_group_views.xml:35
-msgid "Confirm"
-msgstr "Xác nhận"
-```
-
-Trong trường hợp mỗi module Odoo được cấu hình thành một component riêng, cùng một `msgid` ở hai module vẫn được quản lý độc lập vì chúng thuộc hai catalog khác nhau.
-
-```text
-Component: g10_access_management
-msgid: Confirm
-msgstr: Xác nhận
-```
-
-```text
-Component: g10_document
-msgid: Confirm
-msgstr: Đồng ý
-```
+Khi POT thay đổi, add-on `msgmerge` của Weblate đối chiếu các entry trong catalog bằng `msgid` và dùng `msgctxt` nếu trường này có mặt trong entry thực tế. Nó giữ `msgstr` nếu entry tương ứng vẫn còn, thêm entry mới, cập nhật comment/source reference và đánh dấu entry cần kiểm tra khi source string thay đổi. Translation Memory chỉ hoạt động sau bước đối chiếu này để cung cấp suggestion hoặc bản dịch tự động; nó không quyết định entry POT nào tương ứng với entry PO nào.
 
 Translation Memory có thể đề xuất bản dịch giữa các component, nhưng mỗi component vẫn quản lý file PO riêng. Việc tự động áp dụng một bản dịch sang component khác là cơ chế **translation propagation** riêng, không phải bản thân Translation Memory. Nếu cần giữ bản dịch khác nhau giữa các module, phải tắt `Allow translation propagation`; khi đó Translation Memory chỉ cung cấp suggestion hoặc được áp dụng theo chính sách Automatic translation đã cấu hình.
 
@@ -793,7 +773,7 @@ Source: Access Groups
 
 Weblate sử dụng giá trị này để tạo đơn vị dịch, tra cứu Translation Memory, chạy quality checks và xác định trạng thái dịch của chuỗi.
 
-Quy tắc định danh entry bằng `msgctxt + msgid`, trường hợp Odoo không có `msgctxt`, và phạm vi catalog theo component đã được mô tả tại mục **8.1. Cơ chế mapping giữa POT và PO**. Trong mục này, `msgid` chỉ được xét dưới góc độ thông tin người dịch nhìn thấy và thao tác trên Weblate.
+Quy tắc định danh entry bằng `msgctxt + msgid`, trường hợp Odoo không có `msgctxt`, và phạm vi catalog theo component đã được mô tả tại mục **8.1. Cơ chế mapping giữa POT, PO**. Trong mục này, `msgid` chỉ được xét dưới góc độ thông tin người dịch nhìn thấy và thao tác trên Weblate.
 
 ### 9.3. `msgstr`
 
@@ -925,7 +905,7 @@ Thông tin location và description giúp BA hoặc người dịch xác định
 
 ### 9.9. Ví dụ hoàn chỉnh
 
-File PO của Odoo:
+Ví dụ entry Odoo dưới đây chỉ minh họa các thông tin context mà Weblate hiển thị; quy tắc mapping POT–PO đã được định nghĩa tại mục **8.1**, còn cách Weblate phân giải từng trường đã được mô tả tại các mục **9.1–9.5**.
 
 ```po
 #. module: g10_access_management
@@ -934,24 +914,7 @@ msgid "Access Groups"
 msgstr "Nhóm truy cập"
 ```
 
-Weblate phân giải thành:
-
-| Thông tin trên Weblate | Giá trị |
-| ---------------------- | ------- |
-| Component | `g10_access_management` |
-| Source string | `Access Groups` |
-| Translation | `Nhóm truy cập` |
-| Source string description | `module: g10_access_management` |
-| Source string location | `model:ir.model.fields,field_description:g10_access_management.field_access_group__name` |
-
-Trong trường hợp này:
-
-* `msgid` quyết định nội dung cần dịch.
-* `msgstr` là nội dung Weblate ghi lại.
-* Module comment giúp người dùng hiểu phạm vi nghiệp vụ.
-* Location giúp xác định loại dữ liệu Odoo đang sử dụng chuỗi.
-* Translation Memory cung cấp đề xuất.
-* BA hoặc Translator quyết định bản dịch cuối cùng dựa trên ngữ cảnh được hiển thị.
+Trên Weblate, `msgid` được hiển thị là **Source string**, `msgstr` là **Translation**, comment module là **Source string description**, còn dòng `#:` là **Source string location**. Translation Memory chỉ cung cấp suggestion sau khi translation unit đã được xác định; BA/Translator quyết định bản dịch cuối cùng dựa trên context.
 
 ---
 
@@ -987,6 +950,8 @@ Weblate hỗ trợ import Translation Memory từ các định dạng như TMX, 
 ---
 
 ## 11. Gate kiểm tra bản dịch
+
+Gate nội dung được áp dụng sau khi Weblate đã xác định translation unit theo cấu hình component và quy tắc Gettext tại mục **8.1**. BA/Translator không dùng `msgstr`, module comment hoặc source location để tự xác định mapping; các trường đó chỉ lần lượt là bản dịch và thông tin context của entry đã được mapping.
 
 BA/Translator là gate nội dung trong luồng dịch trên Weblate.
 
