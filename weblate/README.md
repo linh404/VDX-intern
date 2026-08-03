@@ -18,8 +18,6 @@ Tài liệu tập trung vào:
 * Luồng cập nhật chuỗi nguồn và bản dịch.
 * Phạm vi công việc cần triển khai.
 * Rủi ro và nguyên tắc tránh conflict.
-* Tiêu chí nghiệm thu.
-* Các quyết định cần leader review.
 
 Tài liệu này **chưa mô tả chi tiết từng bước cấu hình**, câu lệnh triển khai, biến môi trường, Docker Compose hoặc cấu hình cụ thể trên giao diện Weblate. Những nội dung đó sẽ được tách thành tài liệu implementation sau khi plan được phê duyệt.
 
