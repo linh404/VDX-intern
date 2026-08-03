@@ -2,8 +2,7 @@
 
 > **Trạng thái:** Draft for review
 > **Phạm vi:** Technical plan tổng quát
-> **Đối tượng đọc:** Leader, CTO, Developer, BA, DevOps
-> **Mục đích:** Thống nhất kiến trúc, trách nhiệm hệ thống và phạm vi triển khai trước khi cấu hình Weblate vào dự án thực tế.
+> **Mục đích:** Thống nhất kiến trúc.
 
 ---
 
