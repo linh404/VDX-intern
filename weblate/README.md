@@ -903,19 +903,6 @@ g10_access_management/i18n/vi.po
 
 Thông tin location và description giúp BA hoặc người dịch xác định chuỗi được dùng trong model, field, menu, view hay Python source mà không cần tự tìm toàn bộ repository.
 
-### 9.9. Ví dụ hoàn chỉnh
-
-Ví dụ entry Odoo dưới đây chỉ minh họa các thông tin context mà Weblate hiển thị; quy tắc mapping POT–PO đã được định nghĩa tại mục **8.1**, còn cách Weblate phân giải từng trường đã được mô tả tại các mục **9.1–9.5**.
-
-```po
-#. module: g10_access_management
-#: model:ir.model.fields,field_description:g10_access_management.field_access_group__name
-msgid "Access Groups"
-msgstr "Nhóm truy cập"
-```
-
-Trên Weblate, `msgid` được hiển thị là **Source string**, `msgstr` là **Translation**, comment module là **Source string description**, còn dòng `#:` là **Source string location**. Translation Memory chỉ cung cấp suggestion sau khi translation unit đã được xác định; BA/Translator quyết định bản dịch cuối cùng dựa trên context.
-
 ---
 
 ## 10. Translation Memory và tái sử dụng bản dịch
