@@ -343,22 +343,30 @@ Sau khi source code được merge, GitLab CI thực hiện:
 5. Chuẩn hóa và validate file POT.
 6. So sánh POT mới với POT đang lưu trong Git.
 7. Nếu không có thay đổi, job kết thúc.
-8. Nếu có thay đổi, POT được đưa trở lại repository.
-9. GitLab gửi webhook để Weblate pull dữ liệu mới.
+8. Nếu có thay đổi, chỉ các file POT thuộc phạm vi cấu hình được stage.
+9. CI bot tạo commit có marker `[skip ci]` và push trực tiếp vào nhánh `dev`.
+10. GitLab phát sinh push event để Weblate pull template mới nhưng không tạo pipeline cho commit kỹ thuật này.
 
 ```mermaid
 flowchart TD
-    A[Source Odoo đã được merge]
-    B[CI xác định module cần export]
-    C[Runner khởi động Odoo với database CI]
-    D[Install hoặc upgrade module]
-    E[Odoo export file POT]
-    F[Chuẩn hóa và validate POT]
-    G{POT có thay đổi không?}
-    H[Kết thúc job]
-    I[CI cập nhật POT vào repository]
-    J[GitLab webhook thông báo Weblate]
-    K[Weblate pull template mới]
+    A[Source code được merge vào nhánh dev]
+    B[Pipeline khởi chạy job export-i18n]
+    C[CI xác định module cần export]
+    D[Runner khởi động Odoo với database CI]
+    E[Install hoặc upgrade module]
+    F[Odoo export template POT]
+    G[Chuẩn hóa và validate POT]
+    H[So sánh POT mới với POT trong repository]
+    I{POT có thay đổi không?}
+    J[Kết thúc job<br/>Không tạo commit]
+    K[Chỉ stage các file POT được cấu hình]
+    L[Kiểm tra không có file ngoài phạm vi POT]
+    M[CI bot tạo commit có marker skip ci]
+    N[CI bot push commit vào nhánh dev]
+    O[GitLab ghi nhận commit và phát sinh push event]
+    P[GitLab không tạo pipeline mới<br/>do commit có skip ci]
+    Q[Webhook thông báo Weblate]
+    R[Weblate pull template POT mới]
 
     A --> B
     B --> C
@@ -366,10 +374,17 @@ flowchart TD
     D --> E
     E --> F
     F --> G
-    G -- Không --> H
-    G -- Có --> I
-    I --> J
-    J --> K
+    G --> H
+    H --> I
+    I -- Không --> J
+    I -- Có --> K
+    K --> L
+    L --> M
+    M --> N
+    N --> O
+    O --> P
+    O --> Q
+    Q --> R
 ```
 
 ### 7.1. Quan hệ giữa POT và Component
@@ -386,9 +401,7 @@ Weblate component:
 g10_access_management
 ```
 
-### 7.2. Phương thức cập nhật POT
-
-#### CI bot commit trực tiếp
+### 7.2. Phương thức cập nhật POT: CI bot commit trực tiếp
 
 Sau khi job `export-i18n` phát hiện file POT thay đổi, pipeline sử dụng một danh tính kỹ thuật gọi là **CI bot** để commit và push file POT trực tiếp vào nhánh `dev`.
 
@@ -396,49 +409,23 @@ CI bot không thực hiện việc export POT. Việc export, validate và kiể
 
 Vai trò của CI bot:
 
-| Vai trò                  | Tác vụ                                                          |
-| ------------------------ | --------------------------------------------------------------- |
-| Danh tính commit         | Xác định commit cập nhật POT được tạo tự động bởi pipeline      |
-| Xác thực GitLab          | Cung cấp credentials để pipeline push vào repository            |
-| Giới hạn quyền           | Chỉ được cấp quyền tối thiểu cần thiết để cập nhật POT          |
-| Phân biệt commit tự động | Giúp pipeline nhận biết commit do CI tạo và tránh xử lý lặp lại |
+| Vai trò | Tác vụ |
+| ------- | ------ |
+| Danh tính commit | Xác định commit cập nhật POT được tạo tự động bởi pipeline. |
+| Xác thực GitLab | Cung cấp credentials để pipeline push vào repository. |
+| Giới hạn quyền | Chỉ được cấp quyền tối thiểu cần thiết để cập nhật POT. |
+| Truy vết thay đổi | Giúp phân biệt commit kỹ thuật với commit do developer tạo. |
 
-Luồng xử lý:
+Cấu hình dự kiến sử dụng **`[skip ci]` làm cơ chế chính để tránh pipeline loop**.
 
-```mermaid
-flowchart TD
-    A[Source code được merge vào nhánh dev]
-    B[Pipeline khởi chạy job export-i18n]
-    C[Khởi động môi trường Odoo]
-    D[Export template POT mới]
-    E[Validate định dạng POT]
-    F[So sánh POT mới với POT trong repository]
-    G{POT có thay đổi?}
-    H[Kết thúc job<br/>Không tạo commit]
-    I[Chỉ stage các file POT được cấu hình]
-    J[Kiểm tra không có file ngoài phạm vi POT]
-    K[CI bot tạo commit cập nhật POT]
-    L[CI bot push commit vào nhánh dev]
-    M[GitLab phát sinh push event]
-    N[Weblate pull template POT mới]
-    O[Job export-i18n bỏ qua commit của CI bot]
+Commit cập nhật POT sẽ có marker `[skip ci]` trong commit message. Khi CI bot push commit này:
 
-    A --> B
-    B --> C
-    C --> D
-    D --> E
-    E --> F
-    F --> G
+1. GitLab vẫn ghi nhận commit và phát sinh push event.
+2. Webhook vẫn thông báo cho Weblate pull template POT mới.
+3. GitLab không tạo pipeline mới cho commit có `[skip ci]`.
+4. Job `export-i18n` vì vậy không chạy lại trên chính commit POT vừa được tạo.
 
-    G -- Không --> H
-    G -- Có --> I
-    I --> J
-    J --> K
-    K --> L
-    L --> M
-    M --> N
-    L --> O
-```
+Cách này phù hợp vì commit kỹ thuật chỉ chứa các file POT đã được export, kiểm tra phạm vi và validate trong pipeline của commit source trước đó. Commit POT không cần chạy lại toàn bộ pipeline một lần nữa.
 
 Ưu điểm:
 
@@ -446,6 +433,7 @@ flowchart TD
 * POT được lưu trực tiếp trên nhánh `dev`.
 * Weblate nhận template mới ngay sau khi CI hoàn tất.
 * Không cần tạo và review một Merge Request chỉ chứa thay đổi POT.
+* Không phát sinh pipeline lặp cho commit cập nhật POT.
 
 Điều kiện:
 
@@ -454,18 +442,14 @@ flowchart TD
 * Job chỉ được phép commit các file POT thuộc phạm vi cấu hình.
 * Pipeline phải kiểm tra `git diff` trước khi tạo commit.
 * Pipeline phải xác nhận không có file ngoài phạm vi POT được stage.
-* Commit của CI bot phải có marker hoặc metadata để job `export-i18n` không xử lý lại chính commit đó.
-* Commit nên sử dụng cơ chế bỏ qua pipeline hoặc được loại trừ bằng `rules` để tránh pipeline tự kích hoạt lặp vô hạn.
+* Commit message phải chứa marker `[skip ci]`.
 * Credentials của bot phải được lưu trong CI/CD Variables dạng masked và protected, không được ghi trực tiếp trong file cấu hình pipeline.
 
 Ví dụ commit message:
 
 ```text
-[CI i18n] Update translation templates
+[CI i18n][skip ci] Update translation templates
 ```
-
-Pipeline có thể nhận biết và bỏ qua commit tự động dựa trên commit message, tác giả commit hoặc CI variable được truyền khi push.
-
 
 ---
 
@@ -788,7 +772,7 @@ Weblate hiển thị source string cùng location, comment và metadata để ng
 
 ### 9.2. `msgid`
 
-`msgid` là nội dung nguồn mà người dùng nhìn thấy trên giao diện Weblate.
+`msgid` là chuỗi nguồn được hiển thị trong khu vực **Source** trên giao diện Weblate.
 
 ```po
 msgid "Access Groups"
@@ -800,27 +784,13 @@ Trên Weblate:
 Source: Access Groups
 ```
 
-`msgid` được sử dụng để:
+Weblate sử dụng giá trị này để tạo đơn vị dịch, tra cứu Translation Memory, chạy quality checks và xác định trạng thái dịch của chuỗi.
 
-* Tạo đơn vị dịch.
-* Tìm bản dịch tương tự.
-* Tra cứu Translation Memory.
-* Kiểm tra sự thay đổi của chuỗi nguồn.
-* Xác định chuỗi chưa được dịch.
-
-Trong Gettext, `msgctxt` được dùng cùng với `msgid` để phân biệt các chuỗi có cùng nội dung nhưng khác ngữ cảnh.
-
-File PO do Odoo sinh ra thường không có `msgctxt`. Vì vậy:
-
-* `#. module: ...` không thay thế cho `msgctxt`.
-* Metadata module không trở thành khóa định danh của chuỗi.
-* Các chuỗi có cùng `msgid` trong một component không thể có bản dịch khác nhau chỉ dựa vào comment module.
-
-Việc ánh xạ một module Odoo thành một component Weblate giúp giới hạn catalog trong phạm vi từng module. Hai module ở hai component khác nhau vẫn có thể quản lý bản dịch độc lập và tái sử dụng nội dung qua Translation Memory.
+Quy tắc định danh entry bằng `msgctxt + msgid`, trường hợp Odoo không có `msgctxt`, và phạm vi catalog theo component đã được mô tả tại mục **8.1. Cơ chế mapping giữa POT và PO**. Trong mục này, `msgid` chỉ được xét dưới góc độ thông tin người dịch nhìn thấy và thao tác trên Weblate.
 
 ### 9.3. `msgstr`
 
-`msgstr` chứa bản dịch của `msgid`.
+`msgstr` là nội dung được hiển thị trong ô **Translation**.
 
 ```po
 msgid "Access Groups"
@@ -834,18 +804,13 @@ Source:      Access Groups
 Translation: Nhóm truy cập
 ```
 
-Người dùng nhập nội dung trong ô Translation thay vì chỉnh sửa trực tiếp PO. Khi lưu, Weblate cập nhật `msgstr` và ghi thay đổi vào repository theo cấu hình Git của component.
+Người dùng nhập hoặc chỉnh sửa bản dịch trên giao diện thay vì sửa trực tiếp file PO. Khi lưu, Weblate cập nhật `msgstr` và ghi thay đổi vào file PO theo cấu hình Git của component.
 
-Nếu `msgstr` để trống, Weblate coi chuỗi chưa có bản dịch:
-
-```po
-msgid "Access Groups"
-msgstr ""
-```
+Nếu `msgstr` để trống, Weblate đưa chuỗi vào danh sách chưa dịch.
 
 ### 9.4. `#: ...` — Source string location
 
-Dòng bắt đầu bằng `#:` là source string location.
+Dòng bắt đầu bằng `#:` được Weblate hiển thị trong khu vực **Source string location**.
 
 Ví dụ với chuỗi lấy từ Python hoặc XML:
 
@@ -859,43 +824,21 @@ Hoặc với metadata do Odoo export:
 #: model:ir.model.fields,field_description:g10_access_management.field_access_group__name
 ```
 
-Weblate hiển thị location để người dịch xác định chuỗi là:
+Thông tin location giúp người dịch xác định chuỗi đang được sử dụng trong field, model, view, Python source, XML data hoặc record Odoo.
 
-* Tên field.
-* Tên model.
-* Label trong view.
-* Nội dung Python.
-* Dữ liệu XML.
-* Nội dung được sinh từ record Odoo.
-
-Source location có thể được dùng để tìm kiếm chuỗi theo điều kiện `location:` trên Weblate.
-
-Weblate chỉ tạo được liên kết mở source code khi location có dạng đường dẫn file và component đã cấu hình **Repository browser** phù hợp. Các location dạng model identifier của Odoo vẫn được hiển thị làm thông tin tham khảo nhưng thường không thể mở trực tiếp thành một dòng source code.
+Source location có thể được dùng để tìm kiếm chuỗi theo điều kiện `location:` trên Weblate. Weblate chỉ tạo được liên kết mở source code khi location có dạng đường dẫn file và component đã cấu hình **Repository browser** phù hợp. Các location dạng model identifier của Odoo vẫn được hiển thị làm thông tin tham khảo nhưng thường không thể mở trực tiếp thành một dòng source code.
 
 ### 9.5. `#. module: ...` — Source string description
 
-Dòng này là extracted comment do Odoo thêm vào khi export:
+Dòng `#. module: ...` là extracted comment do Odoo thêm vào khi export và được Weblate hiển thị như **Source string description** hoặc developer comment.
 
 ```po
 #. module: g10_access_management
 ```
 
-Trên Weblate, thông tin này được sử dụng như source string description hoặc developer comment.
+Thông tin này giúp người dịch nhận biết module và phạm vi nghiệp vụ đang sử dụng chuỗi, đặc biệt khi Translation Memory cung cấp nhiều đề xuất cho cùng một source string.
 
-Nó giúp người dịch biết chuỗi được sinh ra từ module nào, đặc biệt hữu ích khi:
-
-* Một project Weblate có nhiều component.
-* Một chuỗi giống nhau xuất hiện trong nhiều module.
-* Người dịch cần xác định phạm vi nghiệp vụ của chuỗi.
-* Translation Memory đưa ra nhiều bản dịch khác nhau cho cùng một `msgid`.
-
-Tuy nhiên, `#. module: ...` chỉ cung cấp thông tin cho người dịch. Nó không:
-
-* Tự động chọn bản dịch.
-* Tự động tạo context.
-* Thay thế `msgctxt`.
-* Phân biệt hai entry có cùng `msgid` trong cùng catalog.
-* Quyết định Translation Memory nào được sử dụng.
+`#. module: ...` chỉ là thông tin hỗ trợ trên giao diện. Quy tắc rằng comment này không thay thế `msgctxt`, không tạo khóa mapping và không tự quyết định bản dịch đã được mô tả tại mục **8.1**.
 
 ### 9.6. Header PO
 
@@ -927,45 +870,16 @@ Weblate có thể tự động cập nhật các trường như `Language-Team`,
 
 ### 9.7. Trạng thái Gettext và ảnh hưởng trên Weblate
 
-#### Chuỗi chưa dịch
+Các biểu diễn vật lý của entry chưa dịch, fuzzy và obsolete trong file PO đã được mô tả tại mục **8.3. Kết quả khi POT thay đổi**. Trên giao diện Weblate, các trạng thái đó ảnh hưởng đến luồng dịch như sau:
 
-```po
-msgid "Access Groups"
-msgstr ""
-```
+| Trạng thái trong file PO | Cách Weblate xử lý hoặc hiển thị |
+| ------------------------ | -------------------------------- |
+| `msgstr` rỗng | Đưa chuỗi vào danh sách chưa dịch. |
+| `msgstr` có nội dung | Hiển thị bản dịch hiện tại; trạng thái có thể là **Translated**, **Waiting for review** hoặc **Approved** tùy workflow. |
+| Entry có cờ `fuzzy` | Đưa chuỗi vào trạng thái cần chỉnh sửa hoặc kiểm tra lại; có thể hiển thị previous `msgid` và phần khác biệt với source mới. |
+| Entry có tiền tố `#~` | Xem là obsolete; giữ hoặc loại bỏ khỏi file tùy file format parameter `po_remove_obsolete`. |
 
-Weblate đưa chuỗi vào danh sách chưa dịch để người dùng xử lý.
-
-#### Chuỗi đã dịch
-
-```po
-msgid "Access Groups"
-msgstr "Nhóm truy cập"
-```
-
-Weblate coi entry đã có nội dung dịch. Trạng thái cuối cùng có thể là **Translated**, **Waiting for review** hoặc **Approved**, tùy workflow review được cấu hình cho project.
-
-#### Chuỗi fuzzy hoặc source đã thay đổi
-
-```po
-#, fuzzy
-#| msgid "Access Group"
-msgid "Access Groups"
-msgstr "Nhóm truy cập"
-```
-
-Weblate có thể hiển thị source string cũ và phần khác biệt so với source string mới. Điều này giúp người dịch nhận biết bản dịch cũ cần được kiểm tra lại thay vì dịch lại hoàn toàn.
-
-Để giữ thông tin source cũ, quá trình `msgmerge` phải được chạy với tùy chọn `--previous`.
-
-#### Chuỗi obsolete
-
-```po
-#~ msgid "Old Access Group"
-#~ msgstr "Nhóm truy cập cũ"
-```
-
-Đây là chuỗi không còn tồn tại trong template hiện tại. Weblate có thể giữ hoặc loại bỏ entry obsolete tùy theo file format parameter `po_remove_obsolete`.
+Nếu cần hiển thị source string cũ cho entry fuzzy, bước `msgmerge` phải giữ previous `msgid`, ví dụ bằng tùy chọn `--previous`.
 
 ### 9.8. Thông tin người dịch nhìn thấy trên Weblate
 
