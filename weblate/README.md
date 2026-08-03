@@ -270,8 +270,8 @@ Cấu trúc áp dụng cho QMS:
 Workspace: VDX Odoo
 └── Project: Odoo QMS
     ├── Component: g10_access_management
-    ├── Component: g10_quality
-    ├── Component: g10_document
+    ├── Component: g10_direct_print
+    ├── Component: g10_hybrid_mobile
     └── Component: ...
 ```
 
@@ -390,19 +390,82 @@ g10_access_management
 
 #### CI bot commit trực tiếp
 
-CI bot có quyền cập nhật POT vào nhánh `dev`.
+Sau khi job `export-i18n` phát hiện file POT thay đổi, pipeline sử dụng một danh tính kỹ thuật gọi là **CI bot** để commit và push file POT trực tiếp vào nhánh `dev`.
+
+CI bot không thực hiện việc export POT. Việc export, validate và kiểm tra thay đổi thuộc trách nhiệm của job `export-i18n`. CI bot chỉ cung cấp danh tính và quyền cần thiết để pipeline ghi kết quả trở lại repository.
+
+Vai trò của CI bot:
+
+| Vai trò                  | Tác vụ                                                          |
+| ------------------------ | --------------------------------------------------------------- |
+| Danh tính commit         | Xác định commit cập nhật POT được tạo tự động bởi pipeline      |
+| Xác thực GitLab          | Cung cấp credentials để pipeline push vào repository            |
+| Giới hạn quyền           | Chỉ được cấp quyền tối thiểu cần thiết để cập nhật POT          |
+| Phân biệt commit tự động | Giúp pipeline nhận biết commit do CI tạo và tránh xử lý lặp lại |
+
+Luồng xử lý:
+
+```mermaid
+flowchart TD
+    A[Source code được merge vào nhánh dev]
+    B[Pipeline khởi chạy job export-i18n]
+    C[Khởi động môi trường Odoo]
+    D[Export template POT mới]
+    E[Validate định dạng POT]
+    F[So sánh POT mới với POT trong repository]
+    G{POT có thay đổi?}
+    H[Kết thúc job<br/>Không tạo commit]
+    I[Chỉ stage các file POT được cấu hình]
+    J[Kiểm tra không có file ngoài phạm vi POT]
+    K[CI bot tạo commit cập nhật POT]
+    L[CI bot push commit vào nhánh dev]
+    M[GitLab phát sinh push event]
+    N[Weblate pull template POT mới]
+    O[Job export-i18n bỏ qua commit của CI bot]
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+
+    G -- Không --> H
+    G -- Có --> I
+    I --> J
+    J --> K
+    K --> L
+    L --> M
+    M --> N
+    L --> O
+```
 
 Ưu điểm:
 
-* Luồng ngắn.
-* Weblate nhận template nhanh.
+* Luồng cập nhật ngắn.
+* POT được lưu trực tiếp trên nhánh `dev`.
+* Weblate nhận template mới ngay sau khi CI hoàn tất.
+* Không cần tạo và review một Merge Request chỉ chứa thay đổi POT.
 
 Điều kiện:
 
-* Bot phải có quyền trên protected branch.
-* Phải ngăn pipeline tự kích hoạt lặp vô hạn.
-* Commit phải được giới hạn chỉ cho file POT.
-* Commit cần có marker hoặc rule để job export không xử lý lại chính commit của bot.
+* CI bot phải có quyền push vào nhánh `dev` nếu đây là protected branch.
+* Quyền của bot phải được giới hạn ở mức tối thiểu cần thiết.
+* Job chỉ được phép commit các file POT thuộc phạm vi cấu hình.
+* Pipeline phải kiểm tra `git diff` trước khi tạo commit.
+* Pipeline phải xác nhận không có file ngoài phạm vi POT được stage.
+* Commit của CI bot phải có marker hoặc metadata để job `export-i18n` không xử lý lại chính commit đó.
+* Commit nên sử dụng cơ chế bỏ qua pipeline hoặc được loại trừ bằng `rules` để tránh pipeline tự kích hoạt lặp vô hạn.
+* Credentials của bot phải được lưu trong CI/CD Variables dạng masked và protected, không được ghi trực tiếp trong file cấu hình pipeline.
+
+Ví dụ commit message:
+
+```text
+[CI i18n] Update translation templates
+```
+
+Pipeline có thể nhận biết và bỏ qua commit tự động dựa trên commit message, tác giả commit hoặc CI variable được truyền khi push.
+
 
 ---
 
