@@ -76,7 +76,7 @@ flowchart TD
     P{Merge Request đạt yêu cầu?}
     Q[Merge bản dịch]
     R[Deploy hoặc cập nhật Odoo]
-    S[Kết thúc]
+    S[Export-i18n kết thúc<br/>Tiếp tục pipeline hiện tại]
     T[Trả lại Weblate để chỉnh sửa]
 
     A --> B
@@ -107,6 +107,8 @@ Luồng này tách rõ hai vòng thay đổi:
 1. **Vòng source code:** Developer tạo MR, CI kiểm tra, source được merge và CI cập nhật POT.
 2. **Vòng translation:** Weblate nhận POT, cập nhật PO, BA/Translator hoàn thiện bản dịch và Weblate tạo MR chứa PO.
 
+Nếu POT không thay đổi, chỉ job `export-i18n` kết thúc và pipeline hiện tại tiếp tục theo quy trình đang có. Nếu POT thay đổi, việc deploy phiên bản chứa thay đổi đó chỉ được thực hiện sau khi Merge Request bản dịch do Weblate tạo đã được kiểm tra và merge.
+
 ---
 
 ## 4. Kiến trúc tổng thể và trách nhiệm hệ thống
@@ -118,7 +120,7 @@ Luồng này tách rõ hai vòng thay đổi:
 | Developer | Thêm hoặc sửa source code; đánh dấu chuỗi cần dịch bằng cơ chế i18n của Odoo; không export POT/PO thủ công trong luồng thông thường. |
 | GitLab | Lưu source code, POT và PO; quản lý branch, Merge Request, webhook và lịch sử thay đổi. |
 | GitLab CI Runner | Khởi động môi trường Odoo; export và validate POT; phát hiện thay đổi; cập nhật POT vào Git. |
-| Weblate | Pull repository; đọc POT và PO; đồng bộ PO theo POT; quản lý Translation Memory; cung cấp giao diện dịch; commit và tạo Merge Request. |
+| Weblate | Pull repository; đọc POT và PO; đồng bộ PO theo POT bằng add-on `msgmerge` được cấu hình cho component; quản lý Translation Memory; cung cấp giao diện dịch; commit và tạo Merge Request. |
 | BA/Translator | Dịch, kiểm tra nội dung, sử dụng context và Translation Memory, sau đó xác nhận bản dịch sẵn sàng đưa về repository. |
 | Maintainer/Người có quyền merge | Review Merge Request, kiểm tra thay đổi kỹ thuật và quy trình, quyết định merge hoặc yêu cầu sửa. |
 | Odoo Runtime | Nạp các file `i18n/<language>.po` khi cài đặt hoặc cập nhật module và ngôn ngữ tương ứng. |
@@ -154,9 +156,11 @@ Sau khi Weblate được đưa vào sử dụng:
 
 Việc cùng chỉnh sửa một file PO ở Weblate và bên ngoài Weblate là nguyên nhân phổ biến dẫn đến merge conflict.
 
-### 4.5. Mọi thay đổi phải đi qua Merge Request
+### 4.5. Thay đổi bản dịch phải đi qua Merge Request
 
-Weblate không push trực tiếp vào nhánh protected dùng để deploy.
+Mọi thay đổi đối với nội dung bản dịch và file `.po` phải đi qua Merge Request.
+
+Weblate không push trực tiếp file PO vào nhánh protected dùng để deploy.
 
 Weblate commit vào một nhánh dịch và tạo Merge Request về nhánh đích. GitLab tiếp tục chịu trách nhiệm:
 
@@ -164,6 +168,8 @@ Weblate commit vào một nhánh dịch và tạo Merge Request về nhánh đí
 * Chạy pipeline.
 * Hiển thị diff để truy vết thay đổi.
 * Merge vào nhánh chính thức.
+
+Riêng file `.pot` được CI tự động sinh từ source code đã được merge có thể được CI bot commit trực tiếp vào nhánh `dev`. Đây là ngoại lệ duy nhất, chỉ áp dụng cho các file POT đã được job kiểm tra phạm vi và validate; commit phải có marker `[skip ci]` để tránh pipeline lặp.
 
 ---
 
@@ -320,6 +326,8 @@ module_name/
 Weblate quản lý các file PO thông qua **File mask**, còn file POT được cấu hình tại **Template for new translations**.
 
 Sau khi người dùng dịch trên giao diện Weblate, thay đổi được ghi trở lại file PO và được commit hoặc push về repository theo cấu hình Git của component.
+
+Để các file PO tự động được cập nhật khi POT thay đổi, component phải cài add-on **Update PO files to match POT (msgmerge)** với trigger cập nhật repository. Chỉ cấu hình **Template for new translations** và **File mask** không tự động chạy `msgmerge` cho toàn bộ file PO.
 
 ### 6.4. Tổng hợp trách nhiệm
 
@@ -551,7 +559,7 @@ msgid: Confirm
 msgstr: Đồng ý
 ```
 
-Hai bản dịch không tự động ghi đè nhau. Translation Memory có thể đề xuất bản dịch giữa các component, nhưng mỗi component vẫn quản lý file PO riêng.
+Translation Memory có thể đề xuất bản dịch giữa các component, nhưng mỗi component vẫn quản lý file PO riêng. Việc tự động áp dụng một bản dịch sang component khác là cơ chế **translation propagation** riêng, không phải bản thân Translation Memory. Nếu cần giữ bản dịch khác nhau giữa các module, phải tắt `Allow translation propagation`; khi đó Translation Memory chỉ cung cấp suggestion hoặc được áp dụng theo chính sách Automatic translation đã cấu hình.
 
 ### 8.2. Luồng xử lý chi tiết
 
@@ -560,7 +568,7 @@ flowchart TD
     A[CI commit POT mới vào repository]
     B[Weblate pull commit mới]
     C[Component phát hiện POT thay đổi]
-    D[Weblate chạy msgmerge cho các PO theo File mask]
+    D["Weblate chạy add-on Update PO files to match POT<br/>(msgmerge) cho các PO theo File mask"]
 
     E{Entry POT có entry PO khớp chính xác không?}
     F[Giữ nguyên msgstr]
@@ -973,7 +981,7 @@ Weblate hỗ trợ import Translation Memory từ các định dạng như TMX, 
 * Exact match có thể được sử dụng làm suggestion hoặc tự động áp dụng theo policy đã phê duyệt.
 * Fuzzy match phải được BA hoặc Translator kiểm tra trước khi xác nhận.
 * Machine Translation chỉ là nguồn gợi ý, không thay thế bước kiểm tra nội dung.
-* Translation Memory dùng chung không được ghi đè trực tiếp PO của component khác.
+* Translation Memory dùng chung không tự ghi đè trực tiếp PO của component khác. Cơ chế **translation propagation** được quản lý riêng; nếu bật, bản dịch khớp có thể được tự động áp dụng sang component khác theo cấu hình.
 * Các thuật ngữ nghiệp vụ quan trọng cần được quản lý thêm bằng glossary.
 
 ---
@@ -1124,7 +1132,7 @@ Kết quả cần đạt:
 * Chạy job export POT.
 * Kiểm tra diff.
 * Validate POT.
-* Kiểm tra cơ chế commit hoặc technical MR.
+* Kiểm tra cơ chế CI bot commit trực tiếp các file POT với marker `[skip ci]`.
 * Kiểm tra cơ chế tránh pipeline loop.
 
 ### Giai đoạn 3 — Pilot Weblate
@@ -1142,10 +1150,10 @@ Kết quả cần đạt:
 * Thử dịch chuỗi mới.
 * Kiểm tra Translation Memory.
 * Kiểm tra fuzzy và Needs editing.
+* BA/Translator xác nhận nội dung.
 * Commit từ Weblate.
 * Tạo Merge Request.
 * Chạy CI validation.
-* BA/Translator xác nhận nội dung.
 * CI validate kỹ thuật.
 * Người có quyền thực hiện merge.
 
