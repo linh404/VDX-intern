@@ -120,7 +120,7 @@ Luồng này tách rõ hai vòng thay đổi:
 | GitLab CI Runner | Khởi động môi trường Odoo; export và validate POT; phát hiện thay đổi; cập nhật POT vào Git. |
 | Weblate | Pull repository; đọc POT và PO; đồng bộ PO theo POT; quản lý Translation Memory; cung cấp giao diện dịch; commit và tạo Merge Request. |
 | BA/Translator | Dịch, kiểm tra nội dung, sử dụng context và Translation Memory, sau đó xác nhận bản dịch sẵn sàng đưa về repository. |
-| Reviewer/Leader | Review Merge Request, kiểm tra thay đổi kỹ thuật và quy trình, quyết định merge hoặc yêu cầu sửa. |
+| Maintainer/Người có quyền merge | Review Merge Request, kiểm tra thay đổi kỹ thuật và quy trình, quyết định merge hoặc yêu cầu sửa. |
 | Odoo Runtime | Nạp các file `i18n/<language>.po` khi cài đặt hoặc cập nhật module và ngôn ngữ tương ứng. |
 
 ### 4.2. Quyền sở hữu dữ liệu
@@ -132,7 +132,7 @@ Luồng này tách rõ hai vòng thay đổi:
 | Source code Odoo | Developer |
 | Template `.pot` | GitLab CI |
 | File bản dịch `.po` | Weblate |
-| Review và merge | GitLab |
+| Validate kỹ thuật và merge | GitLab |
 
 CI không tự động điền hoặc ghi đè nội dung `msgstr` trong PO.
 
@@ -160,9 +160,9 @@ Weblate không push trực tiếp vào nhánh protected dùng để deploy.
 
 Weblate commit vào một nhánh dịch và tạo Merge Request về nhánh đích. GitLab tiếp tục chịu trách nhiệm:
 
-* Validate file.
+* Validate kỹ thuật file.
 * Chạy pipeline.
-* Review thay đổi.
+* Hiển thị diff để truy vết thay đổi.
 * Merge vào nhánh chính thức.
 
 ---
@@ -209,7 +209,6 @@ Project là vùng chứa một nhóm component dịch có liên quan.
 Project được sử dụng để quản lý các cấu hình chung như:
 
 * Quyền truy cập của người dịch.
-* Quy trình review bản dịch.
 * Translation Memory trong phạm vi project.
 * Glossary và suggestion dùng chung.
 * Mẫu commit và Merge Request.
@@ -747,7 +746,7 @@ Sau khi hoàn tất quy trình:
 4. Chuỗi thay đổi được đánh dấu để kiểm tra.
 5. Chuỗi không còn sử dụng được đánh dấu obsolete hoặc loại bỏ.
 6. Translation Memory cung cấp các bản dịch có thể tái sử dụng.
-7. BA hoặc Translator hoàn thiện các chuỗi còn lại.
+7. BA hoặc Developer trong vai trò Translator kiểm tra và xác nhận toàn bộ nội dung, bao gồm nội dung do Translation Memory hoặc Machine Translation tạo ra.
 8. Weblate commit file PO.
 9. Weblate tạo Merge Request về GitLab.
 
@@ -875,7 +874,7 @@ Các biểu diễn vật lý của entry chưa dịch, fuzzy và obsolete trong 
 | Trạng thái trong file PO | Cách Weblate xử lý hoặc hiển thị |
 | ------------------------ | -------------------------------- |
 | `msgstr` rỗng | Đưa chuỗi vào danh sách chưa dịch. |
-| `msgstr` có nội dung | Hiển thị bản dịch hiện tại; trạng thái có thể là **Translated**, **Waiting for review** hoặc **Approved** tùy workflow. |
+| `msgstr` có nội dung | Hiển thị bản dịch hiện tại; trong workflow dự kiến không sử dụng review nội bộ, chuỗi sau khi được BA/Translator kiểm tra và xác nhận được coi là hoàn chỉnh để Weblate commit. |
 | Entry có cờ `fuzzy` | Đưa chuỗi vào trạng thái cần chỉnh sửa hoặc kiểm tra lại; có thể hiển thị previous `msgid` và phần khác biệt với source mới. |
 | Entry có tiền tố `#~` | Xem là obsolete; giữ hoặc loại bỏ khỏi file tùy file format parameter `po_remove_obsolete`. |
 
@@ -1093,15 +1092,15 @@ Kết quả cần đạt:
 * Có glossary cho các thuật ngữ nghiệp vụ quan trọng.
 * Weblate commit và tạo MR đúng format.
 
-### Workstream 6 — Validation và review
+### Workstream 6 — Technical validation và merge
 
 Kết quả cần đạt:
 
 * CI kiểm tra cú pháp POT/PO.
 * CI phát hiện placeholder lỗi.
 * CI không cho merge file PO không hợp lệ.
-* Reviewer xem được diff bản dịch trên GitLab.
-* Có luồng trả MR về Weblate khi cần sửa.
+* GitLab hiển thị diff để truy vết thay đổi PO.
+* Nếu CI validation thất bại, lỗi được trả về để sửa trên Weblate.
 * Có log xác định người dịch và commit tương ứng.
 
 ---
@@ -1116,7 +1115,7 @@ Kết quả cần đạt:
 * Chốt chiến lược CI commit POT.
 * Chốt luồng Weblate tạo Merge Request.
 * Chốt phạm vi Translation Memory.
-* Chốt gate nội dung và gate kỹ thuật.
+* Nếu CI validation thất bại, lỗi được trả về để sửa trên Weblate.
 
 ### Giai đoạn 2 — Pilot CI
 
@@ -1146,7 +1145,9 @@ Kết quả cần đạt:
 * Commit từ Weblate.
 * Tạo Merge Request.
 * Chạy CI validation.
-* Review và merge.
+* BA/Translator xác nhận nội dung.
+* CI validate kỹ thuật.
+* Người có quyền thực hiện merge.
 
 ### Giai đoạn 5 — Kiểm tra end-to-end
 
@@ -1161,7 +1162,7 @@ Thực hiện kịch bản:
 7. BA hoặc Translator dịch và xác nhận.
 8. Weblate tạo MR.
 9. CI kiểm tra PO.
-10. Reviewer merge.
+10. Sau khi CI thành công, người có quyền merge Merge Request.
 11. Odoo upgrade module và hiển thị bản dịch.
 
 ### Giai đoạn 6 — Mở rộng
@@ -1207,7 +1208,12 @@ Kiến trúc đề xuất phân tách rõ trách nhiệm:
 Developer quản lý source code.
 GitLab CI quản lý POT.
 Weblate quản lý PO và quy trình dịch.
-BA/Translator xác nhận nội dung.
+Bản dịch có thể được tạo bởi BA, Developer trong vai trò Translator,
+Translation Memory hoặc Machine Translation.
+
+BA/Translator là gate duy nhất xác nhận nội dung.
+GitLab CI chỉ validate kỹ thuật.
+Người có quyền GitLab thực hiện merge khi pipeline thành công.
 GitLab CI và Reviewer/Leader kiểm soát kỹ thuật và merge.
 GitLab là nguồn dữ liệu chính thức.
 ```
