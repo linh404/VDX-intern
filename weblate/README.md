@@ -666,25 +666,34 @@ Nó xử lý các tác vụ chính:
 
 `msgmerge` không phải công cụ dịch nội dung mới. Nó chỉ đồng bộ catalog và cố gắng giữ lại những bản dịch đã tồn tại.
 
-### 8.5. Vai trò của Translation Memory
+### 8.5. Vai trò của Translation Memory và tái sử dụng bản dịch
 
-Translation Memory hoạt động sau bước đồng bộ POT–PO.
+Translation Memory hoạt động sau bước đồng bộ POT–PO và được sử dụng để giảm:
 
-Translation Memory tìm các bản dịch đã tồn tại dựa trên:
+* Công việc dịch lặp lại.
+* Sự phụ thuộc vào AI.
+* Chi phí token hoặc translation API.
+* Sự không nhất quán giữa các module.
+* Thời gian xử lý các chuỗi thông dụng.
 
-* Nội dung source string.
-* Ngôn ngữ nguồn và ngôn ngữ đích.
-* Các bản dịch đã được lưu trong Weblate.
-* Phạm vi Translation Memory được phép sử dụng.
-* Mức độ tương đồng giữa chuỗi mới và chuỗi đã dịch.
+#### 8.5.1. Các phạm vi Translation Memory dự kiến sử dụng
 
-Translation Memory có thể được sử dụng theo ba cách:
+| Scope | Mục đích |
+| ----- | -------- |
+| Personal memory | Lưu lịch sử dịch riêng của người dùng. |
+| Project memory | Tái sử dụng giữa các component trong cùng dự án. |
+| Workspace memory | Tái sử dụng giữa nhiều dự án Odoo trong cùng workspace. |
+| Imported memory | Nhập PO, TMX, CSV hoặc nguồn dữ liệu đã có làm dữ liệu ban đầu. |
 
-| Cách sử dụng | Cơ chế |
-| ------------ | ------ |
-| Suggestion | Hiển thị bản dịch gợi ý để người dịch lựa chọn. |
-| Automatic translation | Người dùng chủ động chạy thao tác dịch tự động. |
-| Automatic translation add-on | Weblate tự động áp dụng bản dịch khi đáp ứng điều kiện cấu hình. |
+Weblate hỗ trợ import Translation Memory từ các định dạng như TMX, JSON, XLIFF, PO và CSV.
+
+#### 8.5.2. Chính sách áp dụng dự kiến
+
+* Exact match có thể được sử dụng làm suggestion hoặc tự động áp dụng theo policy đã phê duyệt.
+* Fuzzy match phải được BA hoặc Translator kiểm tra trước khi xác nhận.
+* Machine Translation chỉ là nguồn gợi ý, không thay thế bước kiểm tra nội dung.
+* Translation Memory dùng chung không tự ghi đè trực tiếp PO của component khác. Cơ chế **translation propagation** được quản lý riêng; nếu bật, bản dịch khớp có thể được tự động áp dụng sang component khác theo cấu hình.
+* Các thuật ngữ nghiệp vụ quan trọng cần được quản lý thêm bằng glossary.
 
 Translation Memory không quyết định entry POT nào tương ứng với entry PO nào.
 
@@ -905,38 +914,7 @@ Thông tin location và description giúp BA hoặc người dịch xác định
 
 ---
 
-## 10. Translation Memory và tái sử dụng bản dịch
-
-Translation Memory được sử dụng để giảm:
-
-* Công việc dịch lặp lại.
-* Sự phụ thuộc vào AI.
-* Chi phí token hoặc translation API.
-* Sự không nhất quán giữa các module.
-* Thời gian xử lý các chuỗi thông dụng.
-
-### 10.1. Các phạm vi Translation Memory dự kiến sử dụng
-
-| Scope | Mục đích |
-| ----- | -------- |
-| Personal memory | Lưu lịch sử dịch riêng của người dùng. |
-| Project memory | Tái sử dụng giữa các component trong cùng dự án. |
-| Workspace memory | Tái sử dụng giữa nhiều dự án Odoo trong cùng workspace. |
-| Imported memory | Nhập PO, TMX, CSV hoặc nguồn dữ liệu đã có làm dữ liệu ban đầu. |
-
-Weblate hỗ trợ import Translation Memory từ các định dạng như TMX, JSON, XLIFF, PO và CSV.
-
-### 10.2. Chính sách áp dụng dự kiến
-
-* Exact match có thể được sử dụng làm suggestion hoặc tự động áp dụng theo policy đã phê duyệt.
-* Fuzzy match phải được BA hoặc Translator kiểm tra trước khi xác nhận.
-* Machine Translation chỉ là nguồn gợi ý, không thay thế bước kiểm tra nội dung.
-* Translation Memory dùng chung không tự ghi đè trực tiếp PO của component khác. Cơ chế **translation propagation** được quản lý riêng; nếu bật, bản dịch khớp có thể được tự động áp dụng sang component khác theo cấu hình.
-* Các thuật ngữ nghiệp vụ quan trọng cần được quản lý thêm bằng glossary.
-
----
-
-## 11. Gate kiểm tra bản dịch
+## 10. Gate kiểm tra bản dịch
 
 Gate nội dung được áp dụng sau khi Weblate đã xác định translation unit theo cấu hình component và quy tắc Gettext tại mục **8.1**. BA/Translator không dùng `msgstr`, module comment hoặc source location để tự xác định mapping; các trường đó chỉ lần lượt là bản dịch và thông tin context của entry đã được mapping.
 
@@ -962,9 +940,9 @@ GitLab CI và Reviewer/Leader tiếp tục thực hiện gate kỹ thuật:
 
 ---
 
-## 12. Phạm vi triển khai
+## 11. Phạm vi triển khai
 
-### 12.1. Trong phạm vi
+### 11.1. Trong phạm vi
 
 * Self-host Weblate cho môi trường nội bộ.
 * Kết nối Weblate với GitLab công ty.
@@ -979,7 +957,7 @@ GitLab CI và Reviewer/Leader tiếp tục thực hiện gate kỹ thuật:
 * Thử nghiệm với một module QMS.
 * Viết tài liệu vận hành sau khi pilot thành công.
 
-### 12.2. Ngoài phạm vi của tài liệu plan
+### 11.2. Ngoài phạm vi của tài liệu plan
 
 * Câu lệnh triển khai chi tiết.
 * File Docker Compose hoàn chỉnh.
@@ -993,7 +971,7 @@ Các nội dung trên sẽ được mô tả trong tài liệu implementation v�
 
 ---
 
-## 13. Các workstream cần triển khai
+## 12. Các workstream cần triển khai
 
 ### Workstream 1 — CI export POT
 
@@ -1065,7 +1043,7 @@ Kết quả cần đạt:
 
 ---
 
-## 14. Kế hoạch triển khai theo giai đoạn
+## 13. Kế hoạch triển khai theo giai đoạn
 
 ### Giai đoạn 1 — Review kiến trúc
 
@@ -1138,7 +1116,7 @@ Thực hiện kịch bản:
 
 ---
 
-## 15. Rủi ro và phương án kiểm soát
+## 14. Rủi ro và phương án kiểm soát
 
 | Rủi ro | Nguyên nhân | Phương án kiểm soát |
 | ------ | ----------- | ------------------- |
@@ -1160,7 +1138,7 @@ Thực hiện kịch bản:
 
 ---
 
-## 16. Kết luận kiến trúc
+## 15. Kết luận kiến trúc
 
 Kiến trúc đề xuất phân tách rõ trách nhiệm:
 
