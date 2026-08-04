@@ -6,6 +6,7 @@ Sơ đồ dưới đây được dựng từ `pipelines/may10-qms.yml` và hai t
 - `templates/docker-cicd.yml`
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'background': '#ffffff', 'primaryTextColor': '#111827', 'primaryBorderColor': '#64748b', 'lineColor': '#475569', 'clusterBkg': '#f8fafc', 'clusterBorder': '#94a3b8', 'fontFamily': 'Arial, sans-serif'}}}%%
 flowchart TB
     EVENT["GitLab event"] --> RULE{"workflow.rules<br/>first matching rule"}
 
@@ -76,11 +77,11 @@ flowchart TB
     NOTE["May10 QMS hiện override ruff/unit-test chỉ chạy ACTION=test;<br/>deploy dev/prod không có unit-test tự động.<br/>update-server-image-prod chỉ chạy ACTION=build,<br/>nhưng push production đang set ACTION=deploy."]
     PROD -.-> NOTE
 
-    classDef route fill:#e0f2fe,stroke:#0369a1,stroke-width:2px
-    classDef job fill:#fef3c7,stroke:#b45309,stroke-width:1px
-    classDef deploy fill:#dcfce7,stroke:#15803d,stroke-width:1px
-    classDef recovery fill:#fee2e2,stroke:#b91c1c,stroke-width:1px
-    classDef note fill:#f3f4f6,stroke:#4b5563,stroke-dasharray:5 5
+    classDef route fill:#e0f2fe,stroke:#0369a1,stroke-width:2px,color:#111827
+    classDef job fill:#fef3c7,stroke:#b45309,stroke-width:1px,color:#111827
+    classDef deploy fill:#dcfce7,stroke:#15803d,stroke-width:1px,color:#111827
+    classDef recovery fill:#fee2e2,stroke:#b91c1c,stroke-width:1px,color:#111827
+    classDef note fill:#f3f4f6,stroke:#4b5563,stroke-dasharray:5 5,color:#111827
 
     class RULE,TEST,BUILD,DEV,PROD,WEB route
     class CLONE,VAULT,DBUILD,UPDATE_DEV,RUFF_T,UNIT_T,SAST_T,SAST_D,SAST_P job
