@@ -426,6 +426,26 @@ Behavior:
 
 Không được dùng `rules:changes` làm cơ chế duy nhất cho mixed commit; detector phải đọc toàn bộ diff.
 
+#### 6.5.1. `I18N_IMPACT_POLICY` và impact mode
+
+`I18N_IMPACT_POLICY` quyết định cách mở rộng danh sách module sau khi detector đã xác định source impact. Hai giá trị được pilot hỗ trợ:
+
+| Policy | Module được export | Reverse dependency | Khi có global/unknown change |
+|---|---|---|---|
+| `strict-local` | Chỉ module sở hữu file source thay đổi | Không mở rộng | Chuyển sang `FULL_FALLBACK`, export toàn bộ managed modules |
+| `conservative` | Module thay đổi và module phụ thuộc transitive được Manifestoo trả về | Có, dùng `list-codepends --transitive --include-selected` | Chuyển sang `FULL_FALLBACK`, export toàn bộ managed modules |
+| Giá trị khác | Không xác định | Không áp dụng | Fail preflight, không export |
+
+`impact_mode` là kết quả phân loại diff, không phải policy:
+
+| `impact_mode` | Điều kiện | Action |
+|---|---|---|
+| `NO_RELEVANT_CHANGE` | Chỉ PO/POT hoặc file nằm trong irrelevant globs | Exit `0` trước database creation |
+| `CHANGED_MODULES` | Có source file thuộc managed module và không có fallback reason | Áp dụng `I18N_IMPACT_POLICY` để tạo export set |
+| `FULL_FALLBACK` | Có global change, unknown path, lỗi Git diff hoặc record diff không đầy đủ | Bỏ qua module selection cục bộ, export toàn bộ managed modules |
+
+Manifestoo chỉ được gọi để mở rộng reverse dependency ở policy `conservative` khi `impact_mode != FULL_FALLBACK`. Nếu Manifestoo không tính được dependency trong trường hợp này, job fail; không tự chuyển sang export thiếu module.
+
 ### 6.6. Output, commit và failure semantics
 
 Allowed generated output:
